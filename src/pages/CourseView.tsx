@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -12,13 +12,16 @@ import LessonList from "@/components/course/LessonList";
 
 const CourseView = () => {
   const { courseId } = useParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
   const [videoProgress, setVideoProgress] = useState(0);
 
-  const { data: course, isLoading: isLoadingCourse } = useQuery({
+  const { data: course, isLoading: isLoadingCourse, error } = useQuery({
     queryKey: ["course", courseId],
     queryFn: async () => {
+      if (!courseId) throw new Error("Course ID is required");
+      
       const { data, error } = await supabase
         .from("courses")
         .select(`
@@ -31,9 +34,27 @@ const CourseView = () => {
         .eq("id", courseId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching course:", error);
+        throw error;
+      }
+      
+      if (!data) {
+        throw new Error("Course not found");
+      }
+      
       return data;
     },
+    retry: 1,
+    onError: (error) => {
+      console.error("Error in course query:", error);
+      toast({
+        title: "Error",
+        description: "Could not load the course. Please try again.",
+        variant: "destructive",
+      });
+      navigate("/courses");
+    }
   });
 
   useEffect(() => {
@@ -43,6 +64,8 @@ const CourseView = () => {
   }, [course]);
 
   const handleLessonComplete = async (lessonId: string) => {
+    if (!courseId) return;
+    
     if (videoProgress < 80) {
       toast({
         title: "Watch more of the video",
@@ -52,33 +75,35 @@ const CourseView = () => {
       return;
     }
 
-    const { error } = await supabase
-      .from("user_progress")
-      .upsert({
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        course_id: courseId,
-        lesson_id: lessonId,
-        completed_at: new Date().toISOString(),
+    try {
+      const { error: progressError } = await supabase
+        .from("user_progress")
+        .upsert({
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          course_id: courseId,
+          lesson_id: lessonId,
+          completed_at: new Date().toISOString(),
+        });
+
+      if (progressError) throw progressError;
+
+      toast({
+        title: "Success",
+        description: "Lesson completed! +10 points",
       });
 
-    if (error) {
+      // Move to next lesson if available
+      const currentIndex = course?.lessons?.findIndex(lesson => lesson.id === lessonId);
+      if (currentIndex !== undefined && currentIndex < (course?.lessons?.length || 0) - 1) {
+        setCurrentLessonId(course?.lessons?.[currentIndex + 1].id);
+      }
+    } catch (error) {
+      console.error("Error updating progress:", error);
       toast({
         title: "Error",
         description: "Could not update progress. Please try again.",
         variant: "destructive",
       });
-      return;
-    }
-
-    toast({
-      title: "Success",
-      description: "Lesson completed! +10 points",
-    });
-
-    // Move to next lesson if available
-    const currentIndex = course?.lessons?.findIndex(lesson => lesson.id === lessonId);
-    if (currentIndex !== undefined && currentIndex < (course?.lessons?.length || 0) - 1) {
-      setCurrentLessonId(course?.lessons?.[currentIndex + 1].id);
     }
   };
 
@@ -106,10 +131,13 @@ const CourseView = () => {
     );
   }
 
-  if (!course) {
+  if (error || !course) {
     return (
-      <div className="p-8">
+      <div className="p-8 flex flex-col items-center justify-center">
         <h1 className="text-2xl font-bold text-white mb-4">Course not found</h1>
+        <Button onClick={() => navigate("/courses")}>
+          Return to Courses
+        </Button>
       </div>
     );
   }
@@ -128,7 +156,7 @@ const CourseView = () => {
       
       <div className="grid grid-cols-3 gap-8">
         <div className="col-span-2 space-y-6">
-          {currentLesson && (
+          {currentLesson ? (
             <>
               <VideoPlayer
                 lesson={currentLesson}
@@ -151,12 +179,16 @@ const CourseView = () => {
                 </div>
               </div>
             </>
+          ) : (
+            <div className="bg-[#161616] rounded-lg p-6 text-center">
+              <p className="text-white">No lesson selected</p>
+            </div>
           )}
         </div>
         
         <div className="space-y-6">
           <LessonList
-            lessons={course.lessons}
+            lessons={course.lessons || []}
             currentLessonId={currentLessonId}
             onLessonSelect={setCurrentLessonId}
           />
