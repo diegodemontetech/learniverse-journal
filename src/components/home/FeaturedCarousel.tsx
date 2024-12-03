@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Course } from "@/types/course";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface FeaturedCarouselProps {
   courses: Course[];
@@ -11,6 +12,7 @@ interface FeaturedCarouselProps {
 const FeaturedCarousel = ({ courses }: FeaturedCarouselProps) => {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!courses?.length) return;
@@ -39,7 +41,9 @@ const FeaturedCarousel = ({ courses }: FeaturedCarouselProps) => {
   const currentCourse = courses[currentIndex];
 
   return (
-    <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl">
+    <div className="relative w-full overflow-hidden rounded-xl" style={{ 
+      aspectRatio: isMobile ? '16/13' : '16/9' 
+    }}>
       {/* Background Image */}
       <div 
         className="absolute inset-0 bg-cover bg-center transition-transform duration-500"
@@ -61,28 +65,28 @@ const FeaturedCarousel = ({ courses }: FeaturedCarouselProps) => {
         </div>
 
         {/* Course Title */}
-        <h1 className="text-4xl font-bold mb-4 max-w-2xl">
+        <h1 className={`${isMobile ? 'text-2xl' : 'text-4xl'} font-bold mb-4 max-w-2xl`}>
           {currentCourse.title}
         </h1>
 
         {/* Course Description */}
-        <p className="text-lg mb-6 max-w-2xl text-gray-200">
+        <p className={`${isMobile ? 'text-base' : 'text-lg'} mb-6 max-w-2xl text-gray-200`}>
           {currentCourse.description}
         </p>
 
         {/* Action Buttons */}
         <div className="flex gap-4 mb-6">
           <Button 
-            size="lg"
-            className="bg-red-600 hover:bg-red-700 text-lg px-8"
+            size={isMobile ? "default" : "lg"}
+            className="bg-red-600 hover:bg-red-700 px-4"
             onClick={() => navigate(`/courses/${currentCourse.id}`)}
           >
             Começar Agora
           </Button>
           <Button 
-            size="lg"
+            size={isMobile ? "default" : "lg"}
             variant="secondary"
-            className="bg-gray-600/80 hover:bg-gray-700/80 text-white text-lg px-8"
+            className="bg-gray-600/80 hover:bg-gray-700/80 text-white px-4"
             onClick={() => navigate(`/courses/${currentCourse.id}/details`)}
           >
             Mais Informações
@@ -94,18 +98,22 @@ const FeaturedCarousel = ({ courses }: FeaturedCarouselProps) => {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white"
+        className={`absolute left-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white ${
+          isMobile ? 'h-8 w-8' : 'h-10 w-10'
+        }`}
         onClick={handlePrevious}
       >
-        <ChevronLeft className="h-8 w-8" />
+        <ChevronLeft className={isMobile ? "h-6 w-6" : "h-8 w-8"} />
       </Button>
       <Button
         variant="ghost"
         size="icon"
-        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white"
+        className={`absolute right-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white ${
+          isMobile ? 'h-8 w-8' : 'h-10 w-10'
+        }`}
         onClick={handleNext}
       >
-        <ChevronRight className="h-8 w-8" />
+        <ChevronRight className={isMobile ? "h-6 w-6" : "h-8 w-8"} />
       </Button>
     </div>
   );
