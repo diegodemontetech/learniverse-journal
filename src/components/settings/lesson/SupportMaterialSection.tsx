@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { FileUp, FileText } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface SupportMaterialSectionProps {
   lessonId: string;
@@ -13,12 +14,13 @@ interface SupportMaterialSectionProps {
 const SupportMaterialSection = ({ lessonId, onUploadComplete }: SupportMaterialSectionProps) => {
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const sanitizeFileName = (fileName: string) => {
     return fileName
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '') // Remove accents
-      .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace other special chars with underscore
+      .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special chars with underscore
       .replace(/\s+/g, '_'); // Replace spaces with underscore
   };
 
@@ -27,13 +29,25 @@ const SupportMaterialSection = ({ lessonId, onUploadComplete }: SupportMaterialS
     if (!file) return;
 
     setIsUploading(true);
+    setUploadProgress(0);
     const sanitizedName = sanitizeFileName(file.name);
-    const filePath = `${sanitizedName}`; // Simplified file path
+    const filePath = `${lessonId}/${sanitizedName}`;
     
     try {
+      // Get authenticated user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
       const { data, error } = await supabase.storage
         .from('support_materials')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+          onUploadProgress: (progress) => {
+            const percent = (progress.loaded / progress.total) * 100;
+            setUploadProgress(Math.round(percent));
+          },
+        });
 
       if (error) throw error;
 
@@ -58,6 +72,7 @@ const SupportMaterialSection = ({ lessonId, onUploadComplete }: SupportMaterialS
         });
       }
     } catch (error: any) {
+      console.error("Erro no upload:", error);
       toast({
         title: "Erro",
         description: "Erro ao enviar o material. Tente novamente.",
@@ -65,6 +80,7 @@ const SupportMaterialSection = ({ lessonId, onUploadComplete }: SupportMaterialS
       });
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -74,7 +90,7 @@ const SupportMaterialSection = ({ lessonId, onUploadComplete }: SupportMaterialS
         <FileText className="w-4 h-4" />
         Material de Apoio
       </Label>
-      <div className="flex items-center gap-4">
+      <div className="space-y-4">
         <input
           type="file"
           id="material"
@@ -92,6 +108,13 @@ const SupportMaterialSection = ({ lessonId, onUploadComplete }: SupportMaterialS
           <FileUp className="w-4 h-4 mr-2" />
           {isUploading ? "Enviando..." : "Upload de Material"}
         </Button>
+        
+        {isUploading && (
+          <div className="space-y-2">
+            <Progress value={uploadProgress} className="h-2" />
+            <p className="text-sm text-gray-400 text-center">{uploadProgress}%</p>
+          </div>
+        )}
       </div>
     </div>
   );
