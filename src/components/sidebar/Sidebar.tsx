@@ -5,22 +5,25 @@ import SidebarNavigation from './SidebarNavigation';
 import SidebarFooter from './SidebarFooter';
 
 const Sidebar = () => {
-  const [isCollapsed, setIsCollapsed] = useState(true); // Start collapsed
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   return (
     <div
       className={cn(
         "sidebar-transition h-screen bg-[#1a1717] fixed left-0 top-0 z-40",
-        isCollapsed ? "w-12" : "w-40" // Reduced width by 40%
+        isCollapsed ? "w-16" : "w-52" // Increased width to accommodate larger elements
       )}
     >
       <div className="flex flex-col h-full">
-        {/* Logo - Moved up and reduced size */}
+        {/* Logo - Increased size and made white */}
         <div className="p-2 flex justify-between items-center">
           <img
             src={isCollapsed ? "https://i.ibb.co/W6FRw6H/i2know-1.png" : "https://i.ibb.co/Wt4MbD9/i2know.png"}
             alt="i2know logo"
-            className={cn("transition-all duration-300", isCollapsed ? "w-8" : "w-24")}
+            className={cn(
+              "transition-all duration-300 brightness-0 invert", // Made logo white
+              isCollapsed ? "w-10" : "w-32" // Increased size by ~30%
+            )}
           />
         </div>
 
@@ -37,7 +40,7 @@ const Sidebar = () => {
         >
           <ChevronRight 
             className={cn(
-              "w-3 h-3 text-gray-400 transition-transform duration-300",
+              "w-3 h-3 text-white transition-transform duration-300", // Made white
               !isCollapsed && "rotate-180"
             )} 
           />

@@ -20,12 +20,12 @@ const SidebarNavigation = ({ isCollapsed }: { isCollapsed: boolean }) => {
               to={item.path}
               className={cn(
                 "flex items-center justify-center space-x-2 p-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors",
-                "text-[13px]", // 13px font size
-                !isCollapsed && "justify-start" // Only left-align when expanded
+                "font-bold", // Made text bold
+                !isCollapsed && "justify-start"
               )}
             >
-              <item.icon className="w-4 h-4" />
-              {!isCollapsed && <span className="leading-none">{item.label}</span>}
+              <item.icon className="w-5 h-5 text-white" /> {/* Increased size by 30% and made white */}
+              {!isCollapsed && <span className="leading-none text-white">{item.label}</span>} {/* Made text white */}
             </Link>
           </li>
         ))}

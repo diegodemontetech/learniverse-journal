@@ -32,12 +32,12 @@ const SidebarFooter = ({ isCollapsed }: SidebarFooterProps) => {
             href="/profile"
             className={cn(
               "flex items-center justify-center space-x-2 p-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors",
-              "text-[13px]",
+              "font-bold", // Made text bold
               !isCollapsed && "justify-start"
             )}
           >
-            <User className="w-4 h-4" />
-            {!isCollapsed && <span className="leading-none">Profile</span>}
+            <User className="w-5 h-5 text-white" /> {/* Increased size by 30% and made white */}
+            {!isCollapsed && <span className="leading-none text-white">Profile</span>} {/* Made text white */}
           </a>
         </li>
         <li>
@@ -45,12 +45,12 @@ const SidebarFooter = ({ isCollapsed }: SidebarFooterProps) => {
             href="/settings"
             className={cn(
               "flex items-center justify-center space-x-2 p-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors",
-              "text-[13px]",
+              "font-bold", // Made text bold
               !isCollapsed && "justify-start"
             )}
           >
-            <Settings className="w-4 h-4" />
-            {!isCollapsed && <span className="leading-none">Settings</span>}
+            <Settings className="w-5 h-5 text-white" /> {/* Increased size by 30% and made white */}
+            {!isCollapsed && <span className="leading-none text-white">Settings</span>} {/* Made text white */}
           </a>
         </li>
         <li>
@@ -58,12 +58,12 @@ const SidebarFooter = ({ isCollapsed }: SidebarFooterProps) => {
             onClick={handleLogout}
             className={cn(
               "w-full flex items-center justify-center space-x-2 p-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors",
-              "text-[13px]",
+              "font-bold", // Made text bold
               !isCollapsed && "justify-start"
             )}
           >
-            <LogOut className="w-4 h-4" />
-            {!isCollapsed && <span className="leading-none">Logout</span>}
+            <LogOut className="w-5 h-5 text-white" /> {/* Increased size by 30% and made white */}
+            {!isCollapsed && <span className="leading-none text-white">Logout</span>} {/* Made text white */}
           </button>
         </li>
       </ul>
