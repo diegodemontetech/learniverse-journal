@@ -12,6 +12,14 @@ interface QuizProps {
   onComplete: () => void;
 }
 
+interface QuizQuestion {
+  id: string;
+  question: string;
+  correct_answer: string;
+  options: string[];
+  points: number;
+}
+
 const Quiz = ({ quizId, onComplete }: QuizProps) => {
   const { toast } = useToast();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -35,7 +43,7 @@ const Quiz = ({ quizId, onComplete }: QuizProps) => {
     },
   });
 
-  const questions = quiz?.quiz_questions || [];
+  const questions = (quiz?.quiz_questions || []) as QuizQuestion[];
   const currentQuestion = questions[currentQuestionIndex];
 
   const handleNext = () => {
