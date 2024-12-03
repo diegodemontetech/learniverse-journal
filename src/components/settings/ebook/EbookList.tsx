@@ -8,19 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Eye, Pencil, Trash2 } from "lucide-react";
-
-interface Ebook {
-  id: string;
-  title: string;
-  author: string;
-  description: string;
-  thumbnail_url: string;
-  pdf_url: string;
-  total_pages: number;
-  category: {
-    name: string;
-  };
-}
+import { Ebook } from "@/types/course";
 
 interface EbookListProps {
   ebooks: Ebook[];

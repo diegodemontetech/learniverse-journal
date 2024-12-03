@@ -14,20 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import EbookForm from "./ebook/EbookForm";
 import EbookList from "./ebook/EbookList";
 import EbookViewer from "./ebook/EbookViewer";
-
-interface Ebook {
-  id: string;
-  title: string;
-  author: string;
-  description: string;
-  thumbnail_url: string;
-  pdf_url: string;
-  total_pages: number;
-  category_id: string;
-  category?: {
-    name: string;
-  };
-}
+import { Ebook } from "@/types/course";
 
 const EbooksTab = () => {
   const { toast } = useToast();
@@ -64,7 +51,7 @@ const EbooksTab = () => {
   });
 
   const createEbookMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: Partial<Ebook>) => {
       const { error } = await supabase.from("ebooks").insert([data]);
       if (error) throw error;
     },
@@ -82,7 +69,7 @@ const EbooksTab = () => {
   });
 
   const updateEbookMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Ebook> }) => {
       const { error } = await supabase
         .from("ebooks")
         .update(data)
@@ -119,7 +106,7 @@ const EbooksTab = () => {
     },
   });
 
-  const handleSubmit = (formData: any) => {
+  const handleSubmit = (formData: Partial<Ebook>) => {
     if (selectedEbook) {
       updateEbookMutation.mutate({
         id: selectedEbook.id,
