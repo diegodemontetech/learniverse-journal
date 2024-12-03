@@ -9,7 +9,7 @@ const Sidebar = () => {
   return (
     <div className={cn(
       "h-screen bg-i2know-sidebar border-r border-i2know-accent/30",
-      isMobile ? "w-[250px]" : "w-20",
+      isMobile ? "w-[125px]" : "w-20", // Reduced from 250px to 125px for mobile
       "shadow-xl"
     )}>
       <div className="flex flex-col h-full">
@@ -26,9 +26,9 @@ const Sidebar = () => {
 
         <SidebarNavigation />
         
-        {/* Footer with reduced spacing on mobile */}
+        {/* Footer with no margin on mobile */}
         <div className={cn(
-          isMobile ? "mt-2" : "mt-auto"
+          isMobile ? "mt-0" : "mt-auto"
         )}>
           <SidebarFooter />
         </div>

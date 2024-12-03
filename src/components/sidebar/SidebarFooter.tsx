@@ -1,11 +1,14 @@
 import { User, Settings, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
 const SidebarFooter = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const handleLogout = async () => {
     try {
@@ -21,30 +24,48 @@ const SidebarFooter = () => {
   };
 
   return (
-    <div className="p-4 border-t border-gray-800/30">
-      <ul className="space-y-2">
+    <div className={cn(
+      "border-t border-gray-800/30",
+      isMobile ? "p-2" : "p-4"
+    )}>
+      <ul className={cn(
+        "space-y-2",
+        isMobile && "flex flex-col items-start gap-2"
+      )}>
         <li>
           <Link
             to="/profile"
-            className="flex items-center justify-center p-2 rounded-lg text-white hover:bg-gray-800 transition-colors"
+            className={cn(
+              "flex items-center gap-3 p-2 rounded-lg text-white hover:bg-gray-800 transition-colors",
+              isMobile && "text-sm"
+            )}
           >
             <User className="w-5 h-5" />
+            {isMobile && <span>Perfil</span>}
           </Link>
         </li>
         <li>
           <Link
             to="/settings"
-            className="flex items-center justify-center p-2 rounded-lg text-white hover:bg-gray-800 transition-colors"
+            className={cn(
+              "flex items-center gap-3 p-2 rounded-lg text-white hover:bg-gray-800 transition-colors",
+              isMobile && "text-sm"
+            )}
           >
             <Settings className="w-5 h-5" />
+            {isMobile && <span>Configurações</span>}
           </Link>
         </li>
         <li>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center p-2 rounded-lg text-white hover:bg-gray-800 transition-colors"
+            className={cn(
+              "w-full flex items-center gap-3 p-2 rounded-lg text-white hover:bg-gray-800 transition-colors",
+              isMobile && "text-sm"
+            )}
           >
             <LogOut className="w-5 h-5" />
+            {isMobile && <span>Sair</span>}
           </button>
         </li>
       </ul>
