@@ -11,6 +11,7 @@ declare global {
       Player: new (
         iframe: HTMLIFrameElement | string,
         options: {
+          videoId?: string;
           events: {
             onStateChange: (event: { data: number }) => void;
           };
@@ -34,7 +35,7 @@ interface VideoPlayerProps {
 }
 
 const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps) => {
-  const playerRef = useRef<HTMLDivElement>(null);
+  const playerContainerId = 'youtube-player-container';
   const [progress, setProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const progressInterval = useRef<number>();
@@ -65,7 +66,7 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
           .select("*")
           .eq("lesson_id", lesson.id)
           .eq("user_id", user.id)
-          .maybeSingle(); // Use maybeSingle() instead of single()
+          .maybeSingle();
 
         if (!error && progressData) {
           setProgress(progressData.progress_percentage || 0);
@@ -75,7 +76,8 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
       }
 
       window.onYouTubeIframeAPIReady = () => {
-        player = new window.YT.Player(playerRef.current, {
+        player = new window.YT.Player(playerContainerId, {
+          videoId,
           events: {
             onStateChange: (event) => {
               setIsPlaying(event.data === window.YT.PlayerState.PLAYING);
@@ -117,7 +119,7 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
 
           const { error } = await supabase
             .from("user_progress")
-            .upsert({ // Use upsert instead of update
+            .upsert({
               user_id: user.id,
               lesson_id: lesson.id,
               progress_percentage: newProgress,
@@ -151,7 +153,7 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
   return (
     <div className="space-y-4">
       <div className="aspect-video bg-black rounded-lg overflow-hidden">
-        <div ref={playerRef} className="w-full h-full" />
+        <div id={playerContainerId} className="w-full h-full" />
       </div>
       <div className="flex items-center gap-4">
         <Progress value={progress} className="flex-1" />
