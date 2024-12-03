@@ -10,7 +10,6 @@ import LessonsTab from "@/components/settings/LessonsTab";
 import QuizzesTab from "@/components/settings/QuizzesTab";
 import FeaturedTab from "@/components/settings/FeaturedTab";
 import NewsTab from "@/components/settings/NewsTab";
-import CertificatesTab from "@/components/settings/CertificatesTab";
 import ImmersionTab from "@/components/settings/ImmersionTab";
 import CategoriesTab from "@/components/settings/CategoriesTab";
 import EbooksTab from "@/components/settings/EbooksTab";
@@ -77,7 +76,6 @@ const Settings = () => {
             <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
             <TabsTrigger value="featured">Destaques</TabsTrigger>
             <TabsTrigger value="news">Notícias</TabsTrigger>
-            <TabsTrigger value="certificates">Certificados</TabsTrigger>
             <TabsTrigger value="immersion">Imersão</TabsTrigger>
             <TabsTrigger value="ebooks">E-books</TabsTrigger>
           </TabsList>
@@ -115,10 +113,6 @@ const Settings = () => {
               <NewsTab />
             </TabsContent>
             
-            <TabsContent value="certificates">
-              <CertificatesTab />
-            </TabsContent>
-
             <TabsContent value="immersion">
               <ImmersionTab />
             </TabsContent>
