@@ -22,7 +22,7 @@ const EbooksTab = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("ebooks")
-        .select(`*, category:categories(name)`)
+        .select("*, category_id, categories(id, name)")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
