@@ -41,14 +41,21 @@ const Index = () => {
     },
   });
 
-  // Fetch all courses for carousel
-  const { data: courses } = useQuery({
-    queryKey: ['courses'],
+  // Fetch latest courses for carousel
+  const { data: latestCourses } = useQuery({
+    queryKey: ['latestCourses', selectedCategory],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('courses')
         .select('*')
-        .limit(10);
+        .order('created_at', { ascending: false })
+        .limit(4);
+
+      if (selectedCategory !== 'all') {
+        query = query.eq('category_id', selectedCategory);
+      }
+
+      const { data, error } = await query;
       
       if (error) throw error;
       return data as Course[];
@@ -57,7 +64,7 @@ const Index = () => {
 
   return (
     <Layout>
-      {/* Hero Section - Reduced height by 25% */}
+      {/* Hero Section */}
       <div className="relative h-[450px] w-full overflow-hidden rounded-xl">
         {/* Background Image */}
         <div 
@@ -123,62 +130,62 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Courses Carousel */}
-      {courses && courses.length > 0 && (
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6 text-white">Cursos Disponíveis</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {courses.map((course) => (
-              <div 
-                key={course.id}
-                className="bg-i2know-card rounded-lg overflow-hidden cursor-pointer transform transition-transform hover:scale-105"
-                onClick={() => navigate(`/courses/${course.id}`)}
-              >
-                <div className="aspect-video relative">
-                  <img 
-                    src={course.thumbnail_url || '/placeholder.svg'} 
-                    alt={course.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-bold text-white mb-2">{course.title}</h3>
-                  <p className="text-sm text-gray-300">{course.instructor}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Category Filters */}
-      <div className="flex items-center gap-3 mt-8 overflow-x-auto pb-4">
-        <Button
-          variant={selectedCategory === 'all' ? 'default' : 'secondary'}
-          className={`rounded-full px-8 flex items-center justify-center ${
-            selectedCategory === 'all' 
-              ? 'bg-red-600 hover:bg-red-700' 
-              : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
-          }`}
-          onClick={() => setSelectedCategory('all')}
-        >
-          Todos
-        </Button>
-        {categories?.map((category) => (
+      <div className="mt-12 mb-6">
+        <h2 className="text-2xl font-bold mb-6 text-white">Lançamentos</h2>
+        <div className="flex items-center gap-3 overflow-x-auto pb-4">
           <Button
-            key={category.id}
-            variant={selectedCategory === category.id ? 'default' : 'secondary'}
+            variant={selectedCategory === 'all' ? 'default' : 'secondary'}
             className={`rounded-full px-8 flex items-center justify-center ${
-              selectedCategory === category.id 
+              selectedCategory === 'all' 
                 ? 'bg-red-600 hover:bg-red-700' 
                 : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
             }`}
-            onClick={() => setSelectedCategory(category.id)}
+            onClick={() => setSelectedCategory('all')}
           >
-            {category.name}
+            Todos
           </Button>
-        ))}
+          {categories?.map((category) => (
+            <Button
+              key={category.id}
+              variant={selectedCategory === category.id ? 'default' : 'secondary'}
+              className={`rounded-full px-8 flex items-center justify-center ${
+                selectedCategory === category.id 
+                  ? 'bg-red-600 hover:bg-red-700' 
+                  : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
+              }`}
+              onClick={() => setSelectedCategory(category.id)}
+            >
+              {category.name}
+            </Button>
+          ))}
+        </div>
       </div>
+
+      {/* Latest Courses Grid */}
+      {latestCourses && latestCourses.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {latestCourses.map((course) => (
+            <div 
+              key={course.id}
+              className="bg-i2know-card rounded-lg overflow-hidden cursor-pointer transform transition-transform hover:scale-105"
+              onClick={() => navigate(`/courses/${course.id}`)}
+            >
+              <div className="aspect-video relative">
+                <img 
+                  src={course.thumbnail_url || '/placeholder.svg'} 
+                  alt={course.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-4">
+                <h3 className="font-bold text-white mb-2">{course.title}</h3>
+                <p className="text-sm text-gray-300">{course.instructor}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </Layout>
   );
 };
