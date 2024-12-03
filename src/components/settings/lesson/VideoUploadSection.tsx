@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, Video } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface VideoUploadSectionProps {
   lessonId: string;
@@ -13,6 +14,7 @@ interface VideoUploadSectionProps {
 const VideoUploadSection = ({ lessonId, onUploadComplete }: VideoUploadSectionProps) => {
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -28,20 +30,32 @@ const VideoUploadSection = ({ lessonId, onUploadComplete }: VideoUploadSectionPr
     }
 
     setIsUploading(true);
+    setUploadProgress(0);
     const fileName = `${lessonId}/${crypto.randomUUID()}`;
     
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
+      // Create a custom upload handler to track progress
+      const xhr = new XMLHttpRequest();
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const percent = (event.loaded / event.total) * 100;
+          setUploadProgress(Math.round(percent));
+        }
+      });
+
       const { data, error } = await supabase.storage
         .from('lesson_videos')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (error) throw error;
 
       if (data) {
-        const { data: { publicUrl } } = supabase.storage
-          .from('lesson_videos')
-          .getPublicUrl(data.path);
-
         await supabase
           .from('lessons')
           .update({
@@ -51,7 +65,7 @@ const VideoUploadSection = ({ lessonId, onUploadComplete }: VideoUploadSectionPr
           })
           .eq('id', lessonId);
 
-        onUploadComplete(publicUrl);
+        onUploadComplete(data.path);
         
         toast({
           title: "Sucesso",
@@ -59,6 +73,7 @@ const VideoUploadSection = ({ lessonId, onUploadComplete }: VideoUploadSectionPr
         });
       }
     } catch (error: any) {
+      console.error("Erro no upload:", error);
       toast({
         title: "Erro",
         description: "Erro ao enviar o vídeo. Tente novamente.",
@@ -66,6 +81,7 @@ const VideoUploadSection = ({ lessonId, onUploadComplete }: VideoUploadSectionPr
       });
     } finally {
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -75,7 +91,7 @@ const VideoUploadSection = ({ lessonId, onUploadComplete }: VideoUploadSectionPr
         <Video className="w-4 h-4" />
         Vídeo da Aula
       </Label>
-      <div className="flex items-center gap-4">
+      <div className="space-y-4">
         <input
           type="file"
           id="video"
@@ -88,11 +104,18 @@ const VideoUploadSection = ({ lessonId, onUploadComplete }: VideoUploadSectionPr
           variant="outline"
           disabled={isUploading}
           onClick={() => document.getElementById('video')?.click()}
-          className="w-full"
+          className="w-full bg-[#272727] border-[#3a3a3a] text-white hover:bg-[#3a3a3a]"
         >
           <Upload className="w-4 h-4 mr-2" />
           {isUploading ? "Enviando..." : "Upload de Vídeo"}
         </Button>
+        
+        {isUploading && (
+          <div className="space-y-2">
+            <Progress value={uploadProgress} className="h-2" />
+            <p className="text-sm text-gray-400 text-center">{uploadProgress}%</p>
+          </div>
+        )}
       </div>
     </div>
   );
