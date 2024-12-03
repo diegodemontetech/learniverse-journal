@@ -8,20 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
-import { Pencil, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import LessonForm from "./lesson/LessonForm";
-import SupportMaterialUpload from "./lesson/SupportMaterialUpload";
-import SupportMaterialList from "./lesson/SupportMaterialList";
+import LessonFormSection from "./lesson/LessonFormSection";
+import LessonTable from "./lesson/LessonTable";
 
 const LessonsTab = () => {
   const { toast } = useToast();
@@ -29,7 +18,6 @@ const LessonsTab = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingLesson, setEditingLesson] = useState<any>(null);
 
-  // Form state
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -197,67 +185,23 @@ const LessonsTab = () => {
 
       {selectedCourse && (
         <div className="grid grid-cols-2 gap-6">
-          <div className="space-y-6">
-            <LessonForm
-              isEditing={isEditing}
-              {...formData}
-              onSubmit={handleSubmit}
-              onChange={handleFormChange}
-              onCancel={resetForm}
-            />
-
-            {editingLesson && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Materiais de Apoio</h3>
-                <SupportMaterialUpload
-                  lessonId={editingLesson.id}
-                  onUploadComplete={refetchLessons}
-                />
-                <SupportMaterialList lessonId={editingLesson.id} />
-              </div>
-            )}
-          </div>
+          <LessonFormSection
+            selectedCourse={selectedCourse}
+            isEditing={isEditing}
+            editingLesson={editingLesson}
+            formData={formData}
+            onSubmit={handleSubmit}
+            onChange={handleFormChange}
+            onCancel={resetForm}
+            onUploadComplete={refetchLessons}
+          />
 
           <div>
-            {lessons && lessons.length > 0 && (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Ordem</TableHead>
-                    <TableHead>Título</TableHead>
-                    <TableHead>Duração</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {lessons.map((lesson) => (
-                    <TableRow key={lesson.id}>
-                      <TableCell>{lesson.order_number}</TableCell>
-                      <TableCell>{lesson.title}</TableCell>
-                      <TableCell>{lesson.duration} minutos</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEdit(lesson)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(lesson.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+            <LessonTable
+              lessons={lessons || []}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
           </div>
         </div>
       )}
