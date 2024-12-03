@@ -81,7 +81,7 @@ const Index = () => {
               <div className="flex gap-4 mb-8">
                 <Button 
                   size="lg"
-                  className="bg-red-600 hover:bg-red-700 text-lg px-8"
+                  className="bg-red-600 hover:bg-red-700 text-lg px-12 py-6 h-auto"
                   onClick={() => navigate(`/courses/${featuredCourse.id}`)}
                 >
                   Começar Agora
@@ -89,7 +89,7 @@ const Index = () => {
                 <Button 
                   size="lg"
                   variant="secondary"
-                  className="bg-gray-600/80 hover:bg-gray-700/80 text-white text-lg px-8"
+                  className="bg-gray-600/80 hover:bg-gray-700/80 text-white text-lg px-12 py-6 h-auto"
                   onClick={() => navigate(`/courses/${featuredCourse.id}/details`)}
                 >
                   Mais Informações
@@ -110,10 +110,10 @@ const Index = () => {
       </div>
 
       {/* Category Filters */}
-      <div className="flex gap-2 mt-8 overflow-x-auto pb-4">
+      <div className="flex items-center gap-3 mt-8 overflow-x-auto pb-4">
         <Button
           variant={selectedCategory === 'all' ? 'default' : 'secondary'}
-          className={`rounded-full px-8 py-2 h-auto ${
+          className={`rounded-full px-12 py-2.5 h-10 flex items-center justify-center ${
             selectedCategory === 'all' 
               ? 'bg-red-600 hover:bg-red-700' 
               : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
@@ -126,7 +126,7 @@ const Index = () => {
           <Button
             key={category.id}
             variant={selectedCategory === category.id ? 'default' : 'secondary'}
-            className={`rounded-full px-8 py-2 h-auto ${
+            className={`rounded-full px-12 py-2.5 h-10 flex items-center justify-center ${
               selectedCategory === category.id 
                 ? 'bg-red-600 hover:bg-red-700' 
                 : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
