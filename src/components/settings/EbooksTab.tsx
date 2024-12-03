@@ -1,24 +1,17 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import EbookForm from "./ebook/EbookForm";
 import EbookList from "./ebook/EbookList";
-import EbookViewer from "./ebook/EbookViewer";
+import EbookDialog from "./ebook/EbookDialog";
+import EbookViewerDialog from "./ebook/EbookViewerDialog";
+import { useEbookMutations } from "./ebook/useEbookMutations";
 import { Ebook } from "@/types/course";
+import { useToast } from "@/hooks/use-toast";
 
 const EbooksTab = () => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [selectedEbook, setSelectedEbook] = useState<Ebook | null>(null);
@@ -37,74 +30,7 @@ const EbooksTab = () => {
     },
   });
 
-  const { data: categories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .order("name");
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const createEbookMutation = useMutation({
-    mutationFn: async (data: Partial<Ebook>) => {
-      const { error } = await supabase.from("ebooks").insert([data]);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ebooks"] });
-      toast({ title: "E-book criado com sucesso!" });
-      setIsOpen(false);
-    },
-    onError: () => {
-      toast({
-        title: "Erro ao criar e-book",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateEbookMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Ebook> }) => {
-      const { error } = await supabase
-        .from("ebooks")
-        .update(data)
-        .eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ebooks"] });
-      toast({ title: "E-book atualizado com sucesso!" });
-      setIsOpen(false);
-    },
-    onError: () => {
-      toast({
-        title: "Erro ao atualizar e-book",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const deleteEbookMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("ebooks").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ebooks"] });
-      toast({ title: "E-book excluído com sucesso!" });
-    },
-    onError: () => {
-      toast({
-        title: "Erro ao excluir e-book",
-        variant: "destructive",
-      });
-    },
-  });
+  const { createEbookMutation, updateEbookMutation, deleteEbookMutation } = useEbookMutations();
 
   const handleSubmit = (formData: Partial<Ebook>) => {
     if (selectedEbook) {
@@ -113,8 +39,9 @@ const EbooksTab = () => {
         data: formData,
       });
     } else {
-      createEbookMutation.mutate(formData);
+      createEbookMutation.mutate(formData as any);
     }
+    setIsOpen(false);
   };
 
   const handlePageChange = async (newPage: number) => {
@@ -145,43 +72,14 @@ const EbooksTab = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-white">E-books</h2>
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button
-              onClick={() => {
-                setSelectedEbook(null);
-                setIsOpen(true);
-              }}
-            >
-              Novo E-book
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>
-                {selectedEbook ? "Editar E-book" : "Novo E-book"}
-              </DialogTitle>
-            </DialogHeader>
-            <EbookForm
-              initialData={selectedEbook}
-              onSubmit={handleSubmit}
-              onCancel={() => setIsOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
-          <DialogContent className="max-w-[95vw] h-[90vh]">
-            <DialogHeader>
-              <DialogTitle>{selectedEbook?.title}</DialogTitle>
-            </DialogHeader>
-            <EbookViewer
-              ebook={selectedEbook}
-              currentPage={currentPage}
-              onPageChange={handlePageChange}
-            />
-          </DialogContent>
-        </Dialog>
+        <Button
+          onClick={() => {
+            setSelectedEbook(null);
+            setIsOpen(true);
+          }}
+        >
+          Novo E-book
+        </Button>
       </div>
 
       <Card>
@@ -205,6 +103,21 @@ const EbooksTab = () => {
           />
         </CardContent>
       </Card>
+
+      <EbookDialog
+        isOpen={isOpen}
+        onOpenChange={setIsOpen}
+        selectedEbook={selectedEbook}
+        onSubmit={handleSubmit}
+      />
+
+      <EbookViewerDialog
+        isOpen={viewerOpen}
+        onOpenChange={setViewerOpen}
+        selectedEbook={selectedEbook}
+        currentPage={currentPage}
+        onPageChange={handlePageChange}
+      />
     </div>
   );
 };

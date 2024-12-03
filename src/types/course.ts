@@ -27,7 +27,11 @@ export interface Ebook {
   pdf_url: string;
   total_pages: number;
   category_id: string;
+  created_at?: string;
   category?: {
     name: string;
   };
 }
+
+export type CreateEbookDTO = Omit<Ebook, 'id' | 'created_at' | 'category'>;
+export type UpdateEbookDTO = Partial<CreateEbookDTO>;
