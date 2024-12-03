@@ -14,6 +14,7 @@ import Ebooks from "./pages/Ebooks";
 import Journey from "./pages/Journey";
 import News from "./pages/News";
 import Settings from "./pages/Settings";
+import Profile from "./pages/Profile";
 import Layout from "./components/Layout";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/journey" element={<ProtectedContent><Journey /></ProtectedContent>} />
             <Route path="/news" element={<ProtectedContent><News /></ProtectedContent>} />
             <Route path="/settings" element={<ProtectedContent><Settings /></ProtectedContent>} />
+            <Route path="/profile" element={<ProtectedContent><Profile /></ProtectedContent>} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

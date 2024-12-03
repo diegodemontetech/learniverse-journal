@@ -145,6 +145,24 @@ export type Database = {
           },
         ]
       }
+      departments: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       ebooks: {
         Row: {
           author: string
@@ -188,6 +206,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      immersion_courses: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration: number | null
+          id: string
+          instructor: string
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration?: number | null
+          id?: string
+          instructor: string
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration?: number | null
+          id?: string
+          instructor?: string
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       lessons: {
         Row: {
@@ -310,49 +361,157 @@ export type Database = {
           },
         ]
       }
+      position_immersion_courses: {
+        Row: {
+          created_at: string
+          immersion_course_id: string
+          position_id: string
+        }
+        Insert: {
+          created_at?: string
+          immersion_course_id: string
+          position_id: string
+        }
+        Update: {
+          created_at?: string
+          immersion_course_id?: string
+          position_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "position_immersion_courses_immersion_course_id_fkey"
+            columns: ["immersion_course_id"]
+            isOneToOne: false
+            referencedRelation: "immersion_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "position_immersion_courses_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      positions: {
+        Row: {
+          created_at: string
+          department_id: string | null
+          id: string
+          name: string
+          reports_to_position_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          department_id?: string | null
+          id?: string
+          name: string
+          reports_to_position_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          department_id?: string | null
+          id?: string
+          name?: string
+          reports_to_position_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "positions_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "positions_reports_to_position_id_fkey"
+            columns: ["reports_to_position_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
+          address: string | null
           avatar_url: string | null
           created_at: string
+          department_id: string | null
           first_name: string | null
           group_id: string | null
           id: string
           last_name: string | null
           level: number | null
+          phone: string | null
           points: number | null
+          position_id: string | null
+          reports_to_user_id: string | null
           role: string | null
           updated_at: string
         }
         Insert: {
+          address?: string | null
           avatar_url?: string | null
           created_at?: string
+          department_id?: string | null
           first_name?: string | null
           group_id?: string | null
           id: string
           last_name?: string | null
           level?: number | null
+          phone?: string | null
           points?: number | null
+          position_id?: string | null
+          reports_to_user_id?: string | null
           role?: string | null
           updated_at?: string
         }
         Update: {
+          address?: string | null
           avatar_url?: string | null
           created_at?: string
+          department_id?: string | null
           first_name?: string | null
           group_id?: string | null
           id?: string
           last_name?: string | null
           level?: number | null
+          phone?: string | null
           points?: number | null
+          position_id?: string | null
+          reports_to_user_id?: string | null
           role?: string | null
           updated_at?: string
         }
         Relationships: [
           {
+            foreignKeyName: "profiles_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "profiles_group_id_fkey"
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "user_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_reports_to_user_id_fkey"
+            columns: ["reports_to_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
