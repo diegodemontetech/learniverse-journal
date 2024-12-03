@@ -57,11 +57,12 @@
 /* Override Dialog styles to prevent form field issues */
 [data-radix-dialog-overlay] {
   background: rgba(0, 0, 0, 0.4) !important;
+  z-index: 40 !important;
 }
 
 [data-radix-dialog-content] {
   position: relative;
-  z-index: 51 !important;
+  z-index: 50 !important;
 }
 
 /* Ensure form inputs are always interactive */
@@ -87,6 +88,8 @@ input, select, textarea, button {
   pointer-events: auto !important;
   opacity: 1 !important;
   cursor: pointer !important;
+  background-color: #2C2C2C !important;
+  color: white !important;
 }
 
 /* Remove any overlay effects that might interfere with form fields */
