@@ -49,7 +49,7 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
           .from("user_progress")
           .update({
             progress_percentage: newProgress,
-            completed_at: newProgress >= 100 ? new Date().toISOString() : null
+            completed_at: newProgress >= 80 ? new Date().toISOString() : null
           })
           .eq("id", existingProgress.id);
 
@@ -62,7 +62,7 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
             user_id: user.id,
             lesson_id: lessonId,
             progress_percentage: newProgress,
-            completed_at: newProgress >= 100 ? new Date().toISOString() : null
+            completed_at: newProgress >= 80 ? new Date().toISOString() : null
           });
 
         if (error) throw error;
