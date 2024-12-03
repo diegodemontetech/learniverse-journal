@@ -15,7 +15,6 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
           .select("*")
           .eq("lesson_id", lessonId)
           .eq("user_id", user.id)
-          .order('created_at', { ascending: false })
           .limit(1)
           .single();
 
@@ -41,7 +40,6 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
         .select("id")
         .eq("user_id", user.id)
         .eq("lesson_id", lessonId)
-        .order('created_at', { ascending: false })
         .limit(1)
         .single();
 
