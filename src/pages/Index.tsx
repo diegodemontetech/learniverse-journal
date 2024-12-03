@@ -21,10 +21,10 @@ const Index = () => {
         .from('courses')
         .select('*')
         .eq('is_featured', true)
-        .single();
+        .limit(1);
       
       if (error) throw error;
-      return data as Course;
+      return data?.[0] as Course | undefined;
     },
   });
 
@@ -58,41 +58,54 @@ const Index = () => {
 
         {/* Content */}
         <div className="relative h-full flex flex-col justify-end p-8 text-white">
-          {/* Featured Tag */}
-          <div className="inline-flex mb-4">
-            <span className="bg-red-600 px-3 py-1 rounded-md text-sm font-medium">
-              Em Destaque
-            </span>
-          </div>
+          {featuredCourse ? (
+            <>
+              {/* Featured Tag */}
+              <div className="inline-flex mb-4">
+                <span className="bg-red-600 px-3 py-1 rounded-md text-sm font-medium">
+                  Em Destaque
+                </span>
+              </div>
 
-          {/* Course Title */}
-          <h1 className="text-5xl font-bold mb-4 max-w-2xl">
-            {featuredCourse?.title || 'Loading...'}
-          </h1>
+              {/* Course Title */}
+              <h1 className="text-5xl font-bold mb-4 max-w-2xl">
+                {featuredCourse.title}
+              </h1>
 
-          {/* Course Description */}
-          <p className="text-lg mb-8 max-w-2xl text-gray-200">
-            {featuredCourse?.description || 'Loading...'}
-          </p>
+              {/* Course Description */}
+              <p className="text-lg mb-8 max-w-2xl text-gray-200">
+                {featuredCourse.description}
+              </p>
 
-          {/* Action Buttons */}
-          <div className="flex gap-4 mb-8">
-            <Button 
-              size="lg"
-              className="bg-red-600 hover:bg-red-700"
-              onClick={() => navigate(`/courses/${featuredCourse?.id}`)}
-            >
-              Começar Agora
-            </Button>
-            <Button 
-              size="lg"
-              variant="secondary"
-              className="bg-gray-600/80 hover:bg-gray-700/80 text-white"
-              onClick={() => navigate(`/courses/${featuredCourse?.id}/details`)}
-            >
-              Mais Informações
-            </Button>
-          </div>
+              {/* Action Buttons */}
+              <div className="flex gap-4 mb-8">
+                <Button 
+                  size="lg"
+                  className="bg-red-600 hover:bg-red-700"
+                  onClick={() => navigate(`/courses/${featuredCourse.id}`)}
+                >
+                  Começar Agora
+                </Button>
+                <Button 
+                  size="lg"
+                  variant="secondary"
+                  className="bg-gray-600/80 hover:bg-gray-700/80 text-white"
+                  onClick={() => navigate(`/courses/${featuredCourse.id}/details`)}
+                >
+                  Mais Informações
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <h1 className="text-4xl font-bold mb-4">
+                Bem-vindo ao i2know
+              </h1>
+              <p className="text-lg mb-8 max-w-2xl text-gray-200">
+                Em breve, novos cursos estarão disponíveis aqui.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
