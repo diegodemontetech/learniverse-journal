@@ -113,15 +113,15 @@ const CourseView = () => {
   );
 
   return (
-    <div className="p-5 max-w-full mx-auto bg-[#131313]">
+    <div className="p-4 sm:p-5 max-w-full mx-auto bg-[#131313]">
       <CourseHeader 
         title={course.title}
         description={course.description || ""}
         progress={calculateProgress()}
       />
       
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
-        <div className="lg:col-span-3 space-y-5">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-5">
+        <div className="lg:col-span-3 space-y-4 sm:space-y-5">
           {currentLesson ? (
             <>
               <div>
@@ -131,23 +131,27 @@ const CourseView = () => {
                   onProgressChange={setVideoProgress}
                 />
               </div>
-              <div className="bg-[#272727] rounded-lg p-5">
-                <h2 className="text-xl font-bold text-white mb-4">{currentLesson.title}</h2>
-                <p className="text-white/80">{currentLesson.description}</p>
+              <div className="bg-[#272727] rounded-lg p-4 sm:p-5">
+                <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">
+                  {currentLesson.title}
+                </h2>
+                <p className="text-sm sm:text-base text-white/80">
+                  {currentLesson.description}
+                </p>
               </div>
               <LessonInteractions lessonId={currentLesson.id} />
-              <div className="bg-[#272727] rounded-lg p-5">
+              <div className="bg-[#272727] rounded-lg p-4 sm:p-5">
                 <SupportMaterials lessonId={currentLesson.id} />
               </div>
             </>
           ) : (
-            <div className="bg-[#272727] rounded-lg p-6 text-center">
+            <div className="bg-[#272727] rounded-lg p-4 sm:p-6 text-center">
               <p className="text-white">Nenhuma aula selecionada</p>
             </div>
           )}
         </div>
         
-        <div className="bg-[#272727] rounded-lg p-5">
+        <div className="bg-[#272727] rounded-lg p-4 sm:p-5 order-first lg:order-last">
           <LessonList
             lessons={course.lessons || []}
             currentLessonId={currentLessonId}

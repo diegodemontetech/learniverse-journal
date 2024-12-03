@@ -27,24 +27,24 @@ const NewsCard = ({ article }: { article: NewsArticle }) => (
       />
     </div>
     <CardHeader className="space-y-2">
-      <h3 className="text-lg font-bold text-i2know-text-primary line-clamp-2">
+      <h3 className="text-base sm:text-lg font-bold text-i2know-text-primary line-clamp-2">
         {article.title}
       </h3>
-      <p className="text-i2know-text-secondary line-clamp-2">
+      <p className="text-sm sm:text-base text-i2know-text-secondary line-clamp-2">
         {article.content}
       </p>
     </CardHeader>
-    <CardFooter className="flex items-center justify-between text-i2know-text-secondary text-sm">
-      <div className="flex items-center gap-2">
-        <User className="w-4 h-4" />
+    <CardFooter className="flex flex-wrap gap-2 sm:gap-4 text-i2know-text-secondary text-xs sm:text-sm">
+      <div className="flex items-center gap-1 sm:gap-2">
+        <User className="w-3 h-3 sm:w-4 sm:h-4" />
         <span>{article.author?.first_name || "Anônimo"}</span>
       </div>
-      <div className="flex items-center gap-2">
-        <Calendar className="w-4 h-4" />
+      <div className="flex items-center gap-1 sm:gap-2">
+        <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
         <span>{format(new Date(article.created_at), "dd/MM/yyyy")}</span>
       </div>
-      <button className="text-i2know-text-secondary hover:text-i2know-accent transition-colors">
-        <Bookmark className="w-4 h-4" />
+      <button className="text-i2know-text-secondary hover:text-i2know-accent transition-colors ml-auto">
+        <Bookmark className="w-3 h-3 sm:w-4 sm:h-4" />
       </button>
     </CardFooter>
   </Card>
@@ -84,9 +84,11 @@ const News = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6">
-        <h1 className="text-3xl font-bold text-i2know-text-primary">Últimas Notícias</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-i2know-text-primary">
+          Últimas Notícias
+        </h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {[...Array(6)].map((_, i) => (
             <NewsCardSkeleton key={i} />
           ))}
@@ -96,9 +98,11 @@ const News = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold text-i2know-text-primary">Últimas Notícias</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+      <h1 className="text-2xl sm:text-3xl font-bold text-i2know-text-primary">
+        Últimas Notícias
+      </h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {news?.map((article) => (
           <NewsCard key={article.id} article={article} />
         ))}

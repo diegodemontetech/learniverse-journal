@@ -22,7 +22,7 @@ const CourseGrid = ({ courses, isLoading, onCourseClick }: CourseGridProps) => {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6 mt-12">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 sm:gap-6 mt-6 sm:mt-12">
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div key={i} className="relative aspect-[2/3] rounded-lg overflow-hidden">
             <Skeleton className="w-full h-full" />
@@ -33,7 +33,7 @@ const CourseGrid = ({ courses, isLoading, onCourseClick }: CourseGridProps) => {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6 mt-12">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 sm:gap-6 mt-6 sm:mt-12">
       {courses?.map((course) => (
         <CourseCard
           key={course.id}
