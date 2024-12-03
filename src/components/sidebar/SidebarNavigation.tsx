@@ -1,5 +1,4 @@
 import { Home, Book, Newspaper, Trophy, Navigation2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 
 const menuItems = [
@@ -11,11 +10,7 @@ const menuItems = [
   { icon: Navigation2, label: 'Immersion', path: '/immersion' },
 ];
 
-interface SidebarNavigationProps {
-  isCollapsed: boolean;
-}
-
-const SidebarNavigation = ({ isCollapsed }: SidebarNavigationProps) => {
+const SidebarNavigation = () => {
   return (
     <nav className="flex-1 px-4 py-6">
       <ul className="space-y-2">
@@ -23,10 +18,9 @@ const SidebarNavigation = ({ isCollapsed }: SidebarNavigationProps) => {
           <li key={item.label}>
             <Link
               to={item.path}
-              className="flex items-center space-x-3 p-3 rounded-lg text-i2know-text-secondary hover:bg-i2know-card hover:text-i2know-text-primary transition-colors"
+              className="flex items-center justify-center p-3 rounded-lg text-white hover:bg-gray-800 transition-colors"
             >
-              <item.icon className={cn("w-6 h-6", isCollapsed && "w-8 h-8")} />
-              {!isCollapsed && <span>{item.label}</span>}
+              <item.icon className="w-8 h-8" />
             </Link>
           </li>
         ))}

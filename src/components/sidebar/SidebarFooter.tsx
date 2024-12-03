@@ -1,15 +1,10 @@
 import { User, Settings, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
-interface SidebarFooterProps {
-  isCollapsed: boolean;
-}
-
-const SidebarFooter = ({ isCollapsed }: SidebarFooterProps) => {
+const SidebarFooter = () => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -26,33 +21,30 @@ const SidebarFooter = ({ isCollapsed }: SidebarFooterProps) => {
   };
 
   return (
-    <div className="p-4 border-t border-i2know-card">
+    <div className="p-4 border-t border-gray-800">
       <ul className="space-y-2">
         <li>
           <Link
             to="/profile"
-            className="flex items-center space-x-3 p-3 rounded-lg text-i2know-text-secondary hover:bg-i2know-card hover:text-i2know-text-primary transition-colors"
+            className="flex items-center justify-center p-3 rounded-lg text-white hover:bg-gray-800 transition-colors"
           >
-            <User className={cn("w-6 h-6", isCollapsed && "w-8 h-8")} />
-            {!isCollapsed && <span>Profile</span>}
+            <User className="w-8 h-8" />
           </Link>
         </li>
         <li>
           <Link
             to="/settings"
-            className="flex items-center space-x-3 p-3 rounded-lg text-i2know-text-secondary hover:bg-i2know-card hover:text-i2know-text-primary transition-colors"
+            className="flex items-center justify-center p-3 rounded-lg text-white hover:bg-gray-800 transition-colors"
           >
-            <Settings className={cn("w-6 h-6", isCollapsed && "w-8 h-8")} />
-            {!isCollapsed && <span>Settings</span>}
+            <Settings className="w-8 h-8" />
           </Link>
         </li>
         <li>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-3 p-3 rounded-lg text-i2know-text-secondary hover:bg-i2know-card hover:text-i2know-text-primary transition-colors"
+            className="w-full flex items-center justify-center p-3 rounded-lg text-white hover:bg-gray-800 transition-colors"
           >
-            <LogOut className={cn("w-6 h-6", isCollapsed && "w-8 h-8")} />
-            {!isCollapsed && <span>Logout</span>}
+            <LogOut className="w-8 h-8" />
           </button>
         </li>
       </ul>
