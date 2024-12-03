@@ -22,7 +22,63 @@ const NewsSection = () => {
     },
   });
 
-  if (!latestNews?.length) return null;
+  if (!latestNews?.length) {
+    // Insert sample news articles if none exist
+    const insertSampleNews = async () => {
+      const { data: authorData } = await supabase
+        .from('profiles')
+        .select('id')
+        .limit(1);
+
+      const authorId = authorData?.[0]?.id;
+
+      const sampleNews = [
+        {
+          title: "Inovação na Pecuária: Sistema VPJ Revoluciona Produção Animal",
+          content: "Nova abordagem integrada de criação de Vitelos, Porcos e Javalis está transformando o cenário da pecuária brasileira. Produtores relatam aumento de 40% na eficiência produtiva.",
+          thumbnail_url: "https://images.unsplash.com/photo-1465379944081-7f47de8d74ac",
+          main_image_url: "https://images.unsplash.com/photo-1465379944081-7f47de8d74ac",
+          video_url: "https://www.youtube.com/watch?v=example1",
+          is_featured: true,
+          layout_position: "featured",
+          author_id: authorId,
+        },
+        {
+          title: "Sustentabilidade na Criação de Javalis: Um Novo Paradigma",
+          content: "Criadores de javalis implementam práticas sustentáveis que reduzem em 30% o impacto ambiental, mantendo a qualidade da carne. Conheça as técnicas revolucionárias.",
+          thumbnail_url: "https://images.unsplash.com/photo-1493962853295-0fd70327578a",
+          main_image_url: "https://images.unsplash.com/photo-1493962853295-0fd70327578a",
+          is_featured: false,
+          layout_position: "most_read",
+          author_id: authorId,
+        },
+        {
+          title: "Vitelos Premium: Brasil se Destaca no Mercado Internacional",
+          content: "Produção de vitelos de alta qualidade coloca o Brasil em posição de destaque no mercado global. Exportações crescem 25% no último trimestre.",
+          thumbnail_url: "https://images.unsplash.com/photo-1517022812141-23620dba5c23",
+          main_image_url: "https://images.unsplash.com/photo-1517022812141-23620dba5c23",
+          video_url: "https://www.youtube.com/watch?v=example2",
+          is_featured: false,
+          layout_position: "regular",
+          author_id: authorId,
+        },
+        {
+          title: "Tecnologia e Bem-estar Animal na Suinocultura Moderna",
+          content: "Novas tecnologias de monitoramento e automação estão revolucionando o bem-estar dos suínos. Produtores registram melhoria significativa na qualidade da produção.",
+          thumbnail_url: "https://images.unsplash.com/photo-1452960962994-acf4fd70b632",
+          main_image_url: "https://images.unsplash.com/photo-1452960962994-acf4fd70b632",
+          is_featured: false,
+          layout_position: "regular",
+          author_id: authorId,
+        }
+      ];
+
+      await supabase.from('news').insert(sampleNews);
+    };
+
+    insertSampleNews();
+    return null;
+  }
 
   return (
     <div className="mb-12">
