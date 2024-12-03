@@ -25,6 +25,7 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange, onNextLesson }: Vid
   const { progress, updateProgress } = useVideoProgress(lesson.id, onProgressChange);
   const { toast } = useToast();
   const [hasAutoAdvanced, setHasAutoAdvanced] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   useEffect(() => {
     const loadVideo = async () => {
@@ -37,17 +38,28 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange, onNextLesson }: Vid
 
         if (error) {
           console.error("Erro ao criar URL assinada:", error);
-          throw error;
+          toast({
+            title: "Erro",
+            description: "Não foi possível carregar o vídeo. Tente novamente.",
+            variant: "destructive",
+          });
+          return;
         }
 
         setVideoUrl(signedUrl);
       } catch (error) {
         console.error("Erro ao carregar vídeo:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar o vídeo. Tente novamente.",
+          variant: "destructive",
+        });
       }
     };
 
     loadVideo();
     setHasAutoAdvanced(false);
+    setIsCompleting(false);
   }, [lesson]);
 
   const handleTimeUpdate = async () => {
@@ -57,20 +69,36 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange, onNextLesson }: Vid
     const currentTime = videoRef.current.currentTime;
     const newProgress = Math.round((currentTime / duration) * 100);
     
-    await updateProgress(newProgress);
+    try {
+      await updateProgress(newProgress);
+    } catch (error) {
+      console.error("Erro ao atualizar progresso:", error);
+    }
   };
 
-  const handleVideoEnd = () => {
-    if (!hasAutoAdvanced) {
-      onComplete(lesson.id);
-      setHasAutoAdvanced(true);
-      toast({
-        title: "Aula concluída!",
-        description: "Você ganhou +10 pontos",
-      });
+  const handleVideoEnd = async () => {
+    if (!hasAutoAdvanced && !isCompleting) {
+      setIsCompleting(true);
+      try {
+        await onComplete(lesson.id);
+        toast({
+          title: "Aula concluída!",
+          description: "Você ganhou +10 pontos",
+        });
 
-      if (onNextLesson) {
-        onNextLesson();
+        if (onNextLesson) {
+          onNextLesson();
+        }
+      } catch (error) {
+        console.error("Erro ao completar aula:", error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível marcar a aula como concluída. Tente novamente.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsCompleting(false);
+        setHasAutoAdvanced(true);
       }
     }
   };
