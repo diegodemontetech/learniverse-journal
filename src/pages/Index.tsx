@@ -18,10 +18,10 @@ const fetchFeaturedCourse = async () => {
     .from('courses')
     .select('*')
     .eq('is_featured', true)
-    .single();
+    .limit(1);  // Changed from .single() to .limit(1)
 
   if (error) throw error;
-  return data;
+  return data?.[0] || null;  // Return first course or null if none exists
 };
 
 const fetchLatestCourses = async () => {
