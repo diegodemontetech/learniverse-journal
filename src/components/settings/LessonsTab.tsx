@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -21,6 +18,10 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/components/ui/use-toast";
 import { Pencil, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import LessonForm from "./lesson/LessonForm";
+import SupportMaterialUpload from "./lesson/SupportMaterialUpload";
+import SupportMaterialList from "./lesson/SupportMaterialList";
 
 const LessonsTab = () => {
   const { toast } = useToast();
@@ -29,11 +30,13 @@ const LessonsTab = () => {
   const [editingLesson, setEditingLesson] = useState<any>(null);
 
   // Form state
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [youtubeUrl, setYoutubeUrl] = useState("");
-  const [duration, setDuration] = useState("");
-  const [orderNumber, setOrderNumber] = useState("");
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    youtubeUrl: "",
+    duration: "",
+    orderNumber: "",
+  });
 
   const { data: courses } = useQuery({
     queryKey: ["courses"],
@@ -63,11 +66,13 @@ const LessonsTab = () => {
   });
 
   const resetForm = () => {
-    setTitle("");
-    setDescription("");
-    setYoutubeUrl("");
-    setDuration("");
-    setOrderNumber("");
+    setFormData({
+      title: "",
+      description: "",
+      youtubeUrl: "",
+      duration: "",
+      orderNumber: "",
+    });
     setIsEditing(false);
     setEditingLesson(null);
   };
@@ -86,11 +91,11 @@ const LessonsTab = () => {
 
     const lessonData = {
       course_id: selectedCourse,
-      title,
-      description,
-      youtube_url: youtubeUrl,
-      duration: parseInt(duration),
-      order_number: parseInt(orderNumber),
+      title: formData.title,
+      description: formData.description,
+      youtube_url: formData.youtubeUrl,
+      duration: parseInt(formData.duration),
+      order_number: parseInt(formData.orderNumber),
     };
 
     try {
@@ -133,11 +138,13 @@ const LessonsTab = () => {
   const handleEdit = (lesson: any) => {
     setIsEditing(true);
     setEditingLesson(lesson);
-    setTitle(lesson.title);
-    setDescription(lesson.description || "");
-    setYoutubeUrl(lesson.youtube_url || "");
-    setDuration(lesson.duration?.toString() || "");
-    setOrderNumber(lesson.order_number?.toString() || "");
+    setFormData({
+      title: lesson.title,
+      description: lesson.description || "",
+      youtubeUrl: lesson.youtube_url || "",
+      duration: lesson.duration?.toString() || "",
+      orderNumber: lesson.order_number?.toString() || "",
+    });
   };
 
   const handleDelete = async (id: string) => {
@@ -164,6 +171,10 @@ const LessonsTab = () => {
     }
   };
 
+  const handleFormChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -185,93 +196,70 @@ const LessonsTab = () => {
       </div>
 
       {selectedCourse && (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            placeholder="Título da aula"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-          <Textarea
-            placeholder="Descrição"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-          <Input
-            placeholder="URL do YouTube"
-            value={youtubeUrl}
-            onChange={(e) => setYoutubeUrl(e.target.value)}
-          />
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              type="number"
-              placeholder="Duração (minutos)"
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              required
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-6">
+            <LessonForm
+              isEditing={isEditing}
+              {...formData}
+              onSubmit={handleSubmit}
+              onChange={handleFormChange}
+              onCancel={resetForm}
             />
-            <Input
-              type="number"
-              placeholder="Ordem"
-              value={orderNumber}
-              onChange={(e) => setOrderNumber(e.target.value)}
-              required
-            />
-          </div>
-          <Button type="submit">
-            {isEditing ? "Atualizar Aula" : "Criar Aula"}
-          </Button>
-          {isEditing && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={resetForm}
-              className="ml-2"
-            >
-              Cancelar
-            </Button>
-          )}
-        </form>
-      )}
 
-      {lessons && lessons.length > 0 && (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Ordem</TableHead>
-              <TableHead>Título</TableHead>
-              <TableHead>Duração</TableHead>
-              <TableHead>Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {lessons.map((lesson) => (
-              <TableRow key={lesson.id}>
-                <TableCell>{lesson.order_number}</TableCell>
-                <TableCell>{lesson.title}</TableCell>
-                <TableCell>{lesson.duration} minutos</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(lesson)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(lesson.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            {editingLesson && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Materiais de Apoio</h3>
+                <SupportMaterialUpload
+                  lessonId={editingLesson.id}
+                  onUploadComplete={refetchLessons}
+                />
+                <SupportMaterialList lessonId={editingLesson.id} />
+              </div>
+            )}
+          </div>
+
+          <div>
+            {lessons && lessons.length > 0 && (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Ordem</TableHead>
+                    <TableHead>Título</TableHead>
+                    <TableHead>Duração</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {lessons.map((lesson) => (
+                    <TableRow key={lesson.id}>
+                      <TableCell>{lesson.order_number}</TableCell>
+                      <TableCell>{lesson.title}</TableCell>
+                      <TableCell>{lesson.duration} minutos</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(lesson)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(lesson.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
