@@ -63,6 +63,9 @@ const QuizQuestions = ({ quizId }: QuizQuestionsProps) => {
   const { data: questions, refetch: refetchQuestions } = useQuery({
     queryKey: ["quiz-questions", quizId],
     queryFn: async () => {
+      // Só faz a query se houver um quizId
+      if (!quizId) return [];
+      
       const { data, error } = await supabase
         .from("quiz_questions")
         .select("*")
@@ -72,6 +75,7 @@ const QuizQuestions = ({ quizId }: QuizQuestionsProps) => {
       if (error) throw error;
       return data;
     },
+    enabled: !!quizId, // Só executa a query se houver um quizId
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -228,6 +232,7 @@ const QuizQuestions = ({ quizId }: QuizQuestionsProps) => {
                         <Input
                           placeholder="Digite a pergunta"
                           {...field}
+                          className="bg-[#2C2C2C] border-none"
                         />
                       </FormControl>
                       <FormMessage />
@@ -245,6 +250,7 @@ const QuizQuestions = ({ quizId }: QuizQuestionsProps) => {
                         <Input
                           placeholder="Opção 1, Opção 2, Opção 3..."
                           {...field}
+                          className="bg-[#2C2C2C] border-none"
                         />
                       </FormControl>
                       <FormMessage />
@@ -262,6 +268,7 @@ const QuizQuestions = ({ quizId }: QuizQuestionsProps) => {
                         <Input
                           placeholder="Digite a resposta correta"
                           {...field}
+                          className="bg-[#2C2C2C] border-none"
                         />
                       </FormControl>
                       <FormMessage />
@@ -277,7 +284,12 @@ const QuizQuestions = ({ quizId }: QuizQuestionsProps) => {
                       <FormItem>
                         <FormLabel>Ordem</FormLabel>
                         <FormControl>
-                          <Input type="number" min={1} {...field} />
+                          <Input 
+                            type="number" 
+                            min={1} 
+                            {...field}
+                            className="bg-[#2C2C2C] border-none"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -291,7 +303,12 @@ const QuizQuestions = ({ quizId }: QuizQuestionsProps) => {
                       <FormItem>
                         <FormLabel>Pontos</FormLabel>
                         <FormControl>
-                          <Input type="number" min={1} {...field} />
+                          <Input 
+                            type="number" 
+                            min={1} 
+                            {...field}
+                            className="bg-[#2C2C2C] border-none"
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
