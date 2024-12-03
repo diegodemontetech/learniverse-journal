@@ -14,9 +14,10 @@ interface VideoPlayerProps {
   };
   onComplete: (lessonId: string) => void;
   onProgressChange: (progress: number) => void;
+  onNextLesson?: () => void;
 }
 
-const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps) => {
+const VideoPlayer = ({ lesson, onComplete, onProgressChange, onNextLesson }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -54,16 +55,20 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
     const currentTime = videoRef.current.currentTime;
     const newProgress = Math.round((currentTime / duration) * 100);
     
-    // Update progress more frequently and with less restrictions
     await updateProgress(newProgress);
+  };
 
-    // Mark as complete when reaching 50% of the video
-    if (newProgress >= 50 && !progress) {
-      onComplete(lesson.id);
-      toast({
-        title: "Aula concluída!",
-        description: "Você ganhou +10 pontos",
-      });
+  const handleVideoEnd = () => {
+    // Mark lesson as complete when video ends
+    onComplete(lesson.id);
+    toast({
+      title: "Aula concluída!",
+      description: "Você ganhou +10 pontos",
+    });
+
+    // Automatically advance to next lesson
+    if (onNextLesson) {
+      onNextLesson();
     }
   };
 
@@ -98,12 +103,13 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
 
   return (
     <div className="relative aspect-video bg-black">
-      <CompletionBadge isCompleted={progress >= 50} />
+      <CompletionBadge isCompleted={progress >= 100} />
       <video
         ref={videoRef}
         src={videoUrl}
         className="w-full h-full"
         onTimeUpdate={handleTimeUpdate}
+        onEnded={handleVideoEnd}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onContextMenu={handleContextMenu}
