@@ -13,20 +13,16 @@ const Sidebar = () => {
       "shadow-xl"
     )}>
       <div className="flex flex-col h-full">
-        {/* Logo with padding adjustments */}
-        <div className={cn(
-          "flex justify-center items-center",
-          isMobile ? "p-6" : "p-4"
-        )}>
-          <img
-            src="https://i.ibb.co/W6FRw6H/i2know-1.png"
-            alt="i2know logo"
-            className={cn(
-              "transition-all duration-300",
-              isMobile ? "w-32" : "w-12"
-            )}
-          />
-        </div>
+        {/* Logo - hidden on mobile since it's in the top bar */}
+        {!isMobile && (
+          <div className="p-4 flex justify-center items-center">
+            <img
+              src="https://i.ibb.co/W6FRw6H/i2know-1.png"
+              alt="i2know logo"
+              className="w-12 transition-all duration-300"
+            />
+          </div>
+        )}
 
         <SidebarNavigation />
         <SidebarFooter />
