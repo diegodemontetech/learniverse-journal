@@ -39,17 +39,22 @@ const Profile = () => {
       }
       return data;
     },
-    onError: (error) => {
-      console.error('Profile error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load profile. Please try again later.",
-        variant: "destructive",
-      });
+    meta: {
+      errorMessage: "Failed to load profile. Please try again later.",
     },
+    retry: 1,
+    gcTime: 0,
+    staleTime: 30000,
   });
 
+  // Show error toast when query fails
   if (isError) {
+    toast({
+      title: "Error",
+      description: "Failed to load profile. Please try again later.",
+      variant: "destructive",
+    });
+
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-i2know-card rounded-lg p-8">
