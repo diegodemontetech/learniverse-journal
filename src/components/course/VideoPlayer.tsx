@@ -15,6 +15,7 @@ interface VideoPlayerProps {
 
 const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps) => {
   const [progress, setProgress] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
   const playerRef = useRef<HTMLIFrameElement>(null);
 
   const getEmbedUrl = (url: string) => {
@@ -33,11 +34,12 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
     }
     
     if (videoId) {
-      return `https://www.youtube.com/embed/${videoId}?enablejsapi=1`;
+      return `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1`;
     }
     
     if (url.includes('youtube.com/embed/')) {
-      return url.includes('?') ? `${url}&enablejsapi=1` : `${url}?enablejsapi=1`;
+      const baseUrl = url.includes('?') ? `${url}&enablejsapi=1&autoplay=1` : `${url}?enablejsapi=1&autoplay=1`;
+      return baseUrl;
     }
     
     return '';
@@ -47,20 +49,50 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
     // Reset progress when lesson changes
     setProgress(0);
     onProgressChange(0);
+    setIsPlaying(false);
   }, [lesson.id]);
 
-  // Simulated progress update (in a real app, you'd use YouTube API)
+  // Setup YouTube API event listeners
   useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        const newProgress = Math.min(prev + 1, 100);
-        onProgressChange(newProgress);
-        return newProgress;
+    let player: any;
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+
+    window.onYouTubeIframeAPIReady = () => {
+      player = new (window as any).YT.Player(playerRef.current, {
+        events: {
+          onStateChange: (event: any) => {
+            setIsPlaying(event.data === (window as any).YT.PlayerState.PLAYING);
+          }
+        }
       });
-    }, 1000);
+    };
+
+    return () => {
+      if (player) {
+        player.destroy();
+      }
+    };
+  }, [lesson.id]);
+
+  // Update progress only when video is playing
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (isPlaying) {
+      interval = setInterval(() => {
+        setProgress(prev => {
+          const newProgress = Math.min(prev + 1, 100);
+          onProgressChange(newProgress);
+          return newProgress;
+        });
+      }, 1000);
+    }
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isPlaying]);
 
   return (
     <div className="bg-[#161616] rounded-lg overflow-hidden">

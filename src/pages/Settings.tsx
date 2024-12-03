@@ -12,6 +12,7 @@ import FeaturedTab from "@/components/settings/FeaturedTab";
 import NewsTab from "@/components/settings/NewsTab";
 import CertificatesTab from "@/components/settings/CertificatesTab";
 import ImmersionTab from "@/components/settings/ImmersionTab";
+import CategoriesTab from "@/components/settings/CategoriesTab";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -69,6 +70,7 @@ const Settings = () => {
           <TabsList className="bg-i2know-card border-none">
             <TabsTrigger value="user-groups">Grupos de Usuários</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
+            <TabsTrigger value="categories">Categorias</TabsTrigger>
             <TabsTrigger value="courses">Cursos</TabsTrigger>
             <TabsTrigger value="lessons">Aulas</TabsTrigger>
             <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
@@ -85,6 +87,10 @@ const Settings = () => {
             
             <TabsContent value="users">
               <UsersTab />
+            </TabsContent>
+            
+            <TabsContent value="categories">
+              <CategoriesTab />
             </TabsContent>
             
             <TabsContent value="courses">
