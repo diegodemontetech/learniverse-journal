@@ -21,6 +21,7 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
   const [isMuted, setIsMuted] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const { progress, updateProgress } = useVideoProgress(lesson.id, onProgressChange);
+  const [highestProgress, setHighestProgress] = useState(progress);
 
   useEffect(() => {
     const loadVideo = async () => {
@@ -45,6 +46,13 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
     loadVideo();
   }, [lesson]);
 
+  // Update highest progress when progress changes
+  useEffect(() => {
+    if (progress > highestProgress) {
+      setHighestProgress(progress);
+    }
+  }, [progress]);
+
   const handleTimeUpdate = async () => {
     if (!videoRef.current) return;
 
@@ -52,7 +60,11 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
     const currentTime = videoRef.current.currentTime;
     const newProgress = Math.round((currentTime / duration) * 100);
     
-    await updateProgress(newProgress);
+    // Only update if it's higher than previous progress
+    if (newProgress > highestProgress) {
+      await updateProgress(newProgress);
+      setHighestProgress(newProgress);
+    }
 
     if (newProgress >= 100) {
       onComplete(lesson.id);
@@ -90,7 +102,7 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
 
   return (
     <div className="relative aspect-video bg-black">
-      <CompletionBadge isCompleted={progress >= 100} />
+      <CompletionBadge isCompleted={highestProgress >= 100} />
       <video
         ref={videoRef}
         src={videoUrl}
