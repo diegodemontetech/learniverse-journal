@@ -1,4 +1,4 @@
-import { Tv, BookOpen, Megaphone, Trophy, FlagTriangleRight } from 'lucide-react';
+import { Home, Tv, BookOpen, Megaphone, Trophy, FlagTriangleRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const menuItems = [
