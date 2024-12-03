@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { MessageSquare, ThumbsUp, ThumbsDown, Reply } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CommentItem } from "./CommentItem";
 
 interface Comment {
   id: string;
@@ -45,7 +45,6 @@ export const LessonComments = ({ lessonId }: LessonCommentsProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Get comments with user info and likes
       const { data: commentsData, error } = await supabase
         .from('lesson_comments')
         .select(`
@@ -58,7 +57,6 @@ export const LessonComments = ({ lessonId }: LessonCommentsProps) => {
 
       if (error) throw error;
 
-      // Get replies
       const commentsWithReplies = await Promise.all(
         commentsData.map(async (comment) => {
           const { data: replies } = await supabase
@@ -70,7 +68,6 @@ export const LessonComments = ({ lessonId }: LessonCommentsProps) => {
             .eq('parent_id', comment.id)
             .order('created_at', { ascending: true });
 
-          // Get user's likes for this comment
           const { data: userLike } = await supabase
             .from('comment_likes')
             .select('is_like')
@@ -188,15 +185,34 @@ export const LessonComments = ({ lessonId }: LessonCommentsProps) => {
         return;
       }
 
-      const { error } = await supabase
+      const { data: existingLike } = await supabase
         .from('comment_likes')
-        .upsert({
-          comment_id: commentId,
-          user_id: user.id,
-          is_like: isLike,
-        });
+        .select('*')
+        .eq('comment_id', commentId)
+        .eq('user_id', user.id)
+        .single();
 
-      if (error) throw error;
+      if (existingLike?.is_like === isLike) {
+        // Remove like if clicking the same button
+        const { error } = await supabase
+          .from('comment_likes')
+          .delete()
+          .eq('comment_id', commentId)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+      } else {
+        // Add or update like
+        const { error } = await supabase
+          .from('comment_likes')
+          .upsert({
+            comment_id: commentId,
+            user_id: user.id,
+            is_like: isLike,
+          });
+
+        if (error) throw error;
+      }
 
       loadComments();
     } catch (error) {
@@ -208,89 +224,6 @@ export const LessonComments = ({ lessonId }: LessonCommentsProps) => {
       });
     }
   };
-
-  const renderComment = (comment: Comment, isReply = false) => (
-    <div key={comment.id} className={`${isReply ? "ml-12" : "border-t border-[#3a3a3a]"} py-4`}>
-      <div className="flex gap-4">
-        <Avatar className="w-10 h-10">
-          <AvatarImage src={comment.user.avatar_url || ""} />
-          <AvatarFallback>
-            {comment.user.first_name?.[0]}
-            {comment.user.last_name?.[0]}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-medium text-white">
-              {comment.user.first_name} {comment.user.last_name}
-            </span>
-            <span className="text-sm text-gray-400">
-              {new Date(comment.created_at).toLocaleDateString()}
-            </span>
-          </div>
-          <p className="text-white/80 mb-2">{comment.content}</p>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => handleLike(comment.id, true)}
-              className="flex items-center gap-1"
-            >
-              <ThumbsUp
-                className={`w-4 h-4 ${
-                  comment.user_like === true ? "text-green-500" : "text-gray-400"
-                }`}
-              />
-              <span className="text-sm text-gray-400">{comment.likes_count}</span>
-            </button>
-            <button
-              onClick={() => handleLike(comment.id, false)}
-              className="flex items-center gap-1"
-            >
-              <ThumbsDown
-                className={`w-4 h-4 ${
-                  comment.user_like === false ? "text-red-500" : "text-gray-400"
-                }`}
-              />
-              <span className="text-sm text-gray-400">{comment.dislikes_count}</span>
-            </button>
-            {!isReply && (
-              <button
-                onClick={() => setReplyTo(comment.id)}
-                className="flex items-center gap-1 text-sm text-gray-400"
-              >
-                <Reply className="w-4 h-4" />
-                Responder
-              </button>
-            )}
-          </div>
-          {replyTo === comment.id && (
-            <div className="mt-4">
-              <Textarea
-                value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
-                placeholder="Escreva sua resposta..."
-                className="mb-2 bg-[#272727] border-[#3a3a3a] text-white"
-              />
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setReplyTo(null)}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={() => handleReply(comment.id)}
-                  disabled={!replyContent.trim()}
-                >
-                  Responder
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-      {comment.replies?.map((reply) => renderComment(reply, true))}
-    </div>
-  );
 
   return (
     <div>
@@ -322,7 +255,18 @@ export const LessonComments = ({ lessonId }: LessonCommentsProps) => {
           </div>
 
           <div className="space-y-4">
-            {comments.map((comment) => renderComment(comment))}
+            {comments.map((comment) => (
+              <CommentItem
+                key={comment.id}
+                comment={comment}
+                onReply={setReplyTo}
+                onLike={handleLike}
+                replyTo={replyTo}
+                replyContent={replyContent}
+                setReplyContent={setReplyContent}
+                handleReply={handleReply}
+              />
+            ))}
           </div>
         </div>
       )}

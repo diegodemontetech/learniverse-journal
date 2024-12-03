@@ -87,8 +87,8 @@ export const LessonLikes = ({ lessonId }: LessonLikesProps) => {
         setUserLike(isLike);
       }
 
-      loadLikes();
-    } catch (error) {
+      await loadLikes();
+    } catch (error: any) {
       console.error('Error updating like:', error);
       toast({
         title: "Erro",
