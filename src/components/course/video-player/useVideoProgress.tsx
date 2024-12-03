@@ -39,19 +39,35 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) return;
 
-      // Always insert a new progress record
+      // Get the course_id for the lesson
+      const { data: lessonData } = await supabase
+        .from("lessons")
+        .select("course_id")
+        .eq("id", lessonId)
+        .single();
+
+      if (!lessonData?.course_id) {
+        console.error("Could not find course_id for lesson");
+        return;
+      }
+
+      // Use upsert operation
       const { error } = await supabase
         .from("user_progress")
-        .insert({
+        .upsert({
           user_id: user.id,
           lesson_id: lessonId,
+          course_id: lessonData.course_id,
           progress_percentage: newProgress,
           completed_at: newProgress >= 100 ? new Date().toISOString() : null
+        }, {
+          onConflict: 'user_id,course_id,lesson_id',
+          ignoreDuplicates: false
         });
 
       if (error) {
         console.error("Error updating progress:", error);
-        return;
+        throw error;
       }
 
       setProgress(newProgress);
