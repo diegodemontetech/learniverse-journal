@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Category } from "@/types/course";
 import { Sparkles, Timer, Trophy } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CourseFiltersProps {
-  categories?: Category[];
   selectedCategory: string;
   setSelectedCategory: (category: string) => void;
   statusFilter: string;
@@ -11,12 +12,30 @@ interface CourseFiltersProps {
 }
 
 const CourseFilters = ({
-  categories,
   selectedCategory,
   setSelectedCategory,
   statusFilter,
   setStatusFilter,
 }: CourseFiltersProps) => {
+  const { data: categoriesWithCourses } = useQuery({
+    queryKey: ["categories-with-courses"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select(`
+          id,
+          name,
+          courses:courses(count)
+        `)
+        .order('name');
+      
+      if (error) throw error;
+      
+      // Filter categories that have at least one course
+      return data.filter(category => category.courses.length > 0);
+    },
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 mb-8 overflow-x-auto pb-4">
@@ -31,7 +50,7 @@ const CourseFilters = ({
         >
           Todos os Cursos
         </Button>
-        {categories?.map((category) => (
+        {categoriesWithCourses?.map((category) => (
           <Button
             key={category.id}
             variant={selectedCategory === category.id ? 'default' : 'secondary'}

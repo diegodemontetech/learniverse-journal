@@ -16,17 +16,6 @@ const Courses = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
-  const { data: categories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*");
-      if (error) throw error;
-      return data;
-    },
-  });
-
   const { data: courses, isLoading } = useQuery({
     queryKey: ["courses", selectedCategory, statusFilter],
     queryFn: async () => {
@@ -117,7 +106,6 @@ const Courses = () => {
       </div>
 
       <CourseFilters
-        categories={categories}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
         statusFilter={statusFilter}
