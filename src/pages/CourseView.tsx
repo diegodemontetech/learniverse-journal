@@ -4,12 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import CourseHeader from "@/components/course/CourseHeader";
 import VideoPlayer from "@/components/course/VideoPlayer";
 import LessonList from "@/components/course/LessonList";
 import SupportMaterials from "@/components/course/SupportMaterials";
 import { useCourseData } from "@/hooks/useCourseData";
 import { LessonInteractions } from "@/components/course/lesson-interactions/LessonInteractions";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const CourseView = () => {
   const { id: courseId } = useParams();
@@ -17,6 +19,8 @@ const CourseView = () => {
   const { toast } = useToast();
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
   const [videoProgress, setVideoProgress] = useState(0);
+  const [isLessonListVisible, setIsLessonListVisible] = useState(true);
+  const isMobile = useIsMobile();
 
   const { data: course, isLoading: isLoadingCourse, error } = useCourseData(courseId);
 
@@ -151,12 +155,28 @@ const CourseView = () => {
           )}
         </div>
         
-        <div className="bg-[#272727] rounded-lg p-4 sm:p-5 order-first lg:order-last">
-          <LessonList
-            lessons={course.lessons || []}
-            currentLessonId={currentLessonId}
-            onLessonSelect={setCurrentLessonId}
-          />
+        <div className="order-first lg:order-last">
+          {isMobile && (
+            <Button
+              variant="ghost"
+              className="w-full mb-2 flex items-center justify-between bg-[#272727] text-white hover:bg-[#3a3a3a]"
+              onClick={() => setIsLessonListVisible(!isLessonListVisible)}
+            >
+              <span>Conteúdo do Curso</span>
+              {isLessonListVisible ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+          <div className={`${isMobile && !isLessonListVisible ? 'hidden' : 'block'}`}>
+            <LessonList
+              lessons={course.lessons || []}
+              currentLessonId={currentLessonId}
+              onLessonSelect={setCurrentLessonId}
+            />
+          </div>
         </div>
       </div>
     </div>
