@@ -41,10 +41,24 @@ const Index = () => {
     },
   });
 
+  // Fetch all courses for carousel
+  const { data: courses } = useQuery({
+    queryKey: ['courses'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('*')
+        .limit(10);
+      
+      if (error) throw error;
+      return data as Course[];
+    },
+  });
+
   return (
     <Layout>
-      {/* Hero Section */}
-      <div className="relative h-[600px] w-full overflow-hidden rounded-xl">
+      {/* Hero Section - Reduced height by 25% */}
+      <div className="relative h-[450px] w-full overflow-hidden rounded-xl">
         {/* Background Image */}
         <div 
           className="absolute inset-0 bg-cover bg-center"
@@ -68,20 +82,20 @@ const Index = () => {
               </div>
 
               {/* Course Title */}
-              <h1 className="text-5xl font-bold mb-4 max-w-2xl">
+              <h1 className="text-4xl font-bold mb-4 max-w-2xl">
                 {featuredCourse.title}
               </h1>
 
               {/* Course Description */}
-              <p className="text-lg mb-8 max-w-2xl text-gray-200">
+              <p className="text-lg mb-6 max-w-2xl text-gray-200">
                 {featuredCourse.description}
               </p>
 
               {/* Action Buttons */}
-              <div className="flex gap-4 mb-8">
+              <div className="flex gap-4 mb-6">
                 <Button 
                   size="lg"
-                  className="bg-red-600 hover:bg-red-700 text-lg px-12 py-6 h-auto"
+                  className="bg-red-600 hover:bg-red-700 text-lg px-8"
                   onClick={() => navigate(`/courses/${featuredCourse.id}`)}
                 >
                   Começar Agora
@@ -89,7 +103,7 @@ const Index = () => {
                 <Button 
                   size="lg"
                   variant="secondary"
-                  className="bg-gray-600/80 hover:bg-gray-700/80 text-white text-lg px-12 py-6 h-auto"
+                  className="bg-gray-600/80 hover:bg-gray-700/80 text-white text-lg px-8"
                   onClick={() => navigate(`/courses/${featuredCourse.id}/details`)}
                 >
                   Mais Informações
@@ -101,7 +115,7 @@ const Index = () => {
               <h1 className="text-4xl font-bold mb-4">
                 Bem-vindo ao i2know
               </h1>
-              <p className="text-lg mb-8 max-w-2xl text-gray-200">
+              <p className="text-lg mb-6 max-w-2xl text-gray-200">
                 Em breve, novos cursos estarão disponíveis aqui.
               </p>
             </div>
@@ -109,11 +123,39 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Courses Carousel */}
+      {courses && courses.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-6 text-white">Cursos Disponíveis</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {courses.map((course) => (
+              <div 
+                key={course.id}
+                className="bg-i2know-card rounded-lg overflow-hidden cursor-pointer transform transition-transform hover:scale-105"
+                onClick={() => navigate(`/courses/${course.id}`)}
+              >
+                <div className="aspect-video relative">
+                  <img 
+                    src={course.thumbnail_url || '/placeholder.svg'} 
+                    alt={course.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-bold text-white mb-2">{course.title}</h3>
+                  <p className="text-sm text-gray-300">{course.instructor}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Category Filters */}
       <div className="flex items-center gap-3 mt-8 overflow-x-auto pb-4">
         <Button
           variant={selectedCategory === 'all' ? 'default' : 'secondary'}
-          className={`rounded-full px-12 py-2.5 h-10 flex items-center justify-center ${
+          className={`rounded-full px-8 flex items-center justify-center ${
             selectedCategory === 'all' 
               ? 'bg-red-600 hover:bg-red-700' 
               : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
@@ -126,7 +168,7 @@ const Index = () => {
           <Button
             key={category.id}
             variant={selectedCategory === category.id ? 'default' : 'secondary'}
-            className={`rounded-full px-12 py-2.5 h-10 flex items-center justify-center ${
+            className={`rounded-full px-8 flex items-center justify-center ${
               selectedCategory === category.id 
                 ? 'bg-red-600 hover:bg-red-700' 
                 : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
