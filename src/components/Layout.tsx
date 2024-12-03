@@ -9,7 +9,7 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="min-h-screen bg-i2know-body">
       <Sidebar />
-      <main className="content-transition ml-12 p-8"> {/* Adjusted margin for collapsed state */}
+      <main className="content-transition ml-12 p-8">
         {children}
       </main>
     </div>

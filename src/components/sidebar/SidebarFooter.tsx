@@ -25,33 +25,45 @@ const SidebarFooter = ({ isCollapsed }: SidebarFooterProps) => {
   };
 
   return (
-    <div className="p-4 border-t border-i2know-card">
-      <ul className="space-y-2">
+    <div className="p-2 border-t border-i2know-card">
+      <ul className="space-y-1">
         <li>
           <a
             href="/profile"
-            className="flex items-center space-x-3 p-3 rounded-lg text-i2know-text-secondary hover:bg-i2know-card hover:text-i2know-text-primary transition-colors"
+            className={cn(
+              "flex items-center justify-center space-x-2 p-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors",
+              "text-[13px]",
+              !isCollapsed && "justify-start"
+            )}
           >
-            <User className={cn("w-6 h-6", isCollapsed && "w-8 h-8")} />
-            {!isCollapsed && <span>Profile</span>}
+            <User className="w-4 h-4" />
+            {!isCollapsed && <span className="leading-none">Profile</span>}
           </a>
         </li>
         <li>
           <a
             href="/settings"
-            className="flex items-center space-x-3 p-3 rounded-lg text-i2know-text-secondary hover:bg-i2know-card hover:text-i2know-text-primary transition-colors"
+            className={cn(
+              "flex items-center justify-center space-x-2 p-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors",
+              "text-[13px]",
+              !isCollapsed && "justify-start"
+            )}
           >
-            <Settings className={cn("w-6 h-6", isCollapsed && "w-8 h-8")} />
-            {!isCollapsed && <span>Settings</span>}
+            <Settings className="w-4 h-4" />
+            {!isCollapsed && <span className="leading-none">Settings</span>}
           </a>
         </li>
         <li>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-3 p-3 rounded-lg text-i2know-text-secondary hover:bg-i2know-card hover:text-i2know-text-primary transition-colors"
+            className={cn(
+              "w-full flex items-center justify-center space-x-2 p-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors",
+              "text-[13px]",
+              !isCollapsed && "justify-start"
+            )}
           >
-            <LogOut className={cn("w-6 h-6", isCollapsed && "w-8 h-8")} />
-            {!isCollapsed && <span>Logout</span>}
+            <LogOut className="w-4 h-4" />
+            {!isCollapsed && <span className="leading-none">Logout</span>}
           </button>
         </li>
       </ul>

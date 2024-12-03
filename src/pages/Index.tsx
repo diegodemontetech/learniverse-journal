@@ -75,7 +75,7 @@ const FeaturedCourse = ({ course }: { course: Course }) => (
 );
 
 const CourseCard = ({ title, instructor, thumbnail_url }: Course) => (
-  <div className="group cursor-pointer px-2">
+  <div className="group cursor-pointer">
     <div className="relative aspect-video rounded-xl overflow-hidden mb-4">
       <img
         src={thumbnail_url || "https://images.unsplash.com/photo-1461749280684-dccba630e2f6"}
