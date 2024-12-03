@@ -15,7 +15,9 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
           .select("*")
           .eq("lesson_id", lessonId)
           .eq("user_id", user.id)
-          .maybeSingle();
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
 
         if (!progressError && progressData) {
           setProgress(progressData.progress_percentage || 0);
@@ -39,7 +41,9 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
         .select("id")
         .eq("user_id", user.id)
         .eq("lesson_id", lessonId)
-        .maybeSingle();
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
 
       if (existingProgress) {
         // Update existing record
