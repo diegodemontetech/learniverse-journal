@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import VideoControls from "./video-player/VideoControls";
 import CompletionBadge from "./video-player/CompletionBadge";
 import { useVideoProgress } from "./video-player/useVideoProgress";
+import { useToast } from "@/components/ui/use-toast";
 
 interface VideoPlayerProps {
   lesson: {
@@ -22,6 +23,7 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const { progress, updateProgress } = useVideoProgress(lesson.id, onProgressChange);
   const [highestProgress, setHighestProgress] = useState(progress);
+  const { toast } = useToast();
 
   useEffect(() => {
     const loadVideo = async () => {
@@ -64,10 +66,20 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
     if (newProgress > highestProgress) {
       await updateProgress(newProgress);
       setHighestProgress(newProgress);
+
+      // Only mark as complete if progress is >= 80%
+      if (newProgress >= 80 && !progress) {
+        onComplete(lesson.id);
+      }
     }
 
-    if (newProgress >= 100) {
-      onComplete(lesson.id);
+    // Show warning if trying to mark complete with insufficient progress
+    if (currentTime === duration && highestProgress < 80) {
+      toast({
+        title: "Atenção",
+        description: "Por favor, assista pelo menos 80% do vídeo para marcá-lo como concluído.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -102,7 +114,7 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
 
   return (
     <div className="relative aspect-video bg-black">
-      <CompletionBadge isCompleted={highestProgress >= 100} />
+      <CompletionBadge isCompleted={highestProgress >= 80} />
       <video
         ref={videoRef}
         src={videoUrl}

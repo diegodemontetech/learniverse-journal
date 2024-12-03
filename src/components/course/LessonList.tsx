@@ -5,7 +5,7 @@ interface Lesson {
   id: string;
   title: string;
   duration: number;
-  user_progress: Array<{ completed_at: string }>;
+  user_progress: Array<{ completed_at: string; progress_percentage: number }>;
 }
 
 interface LessonListProps {
@@ -20,7 +20,9 @@ const LessonList = ({ lessons, currentLessonId, onLessonSelect }: LessonListProp
       <h3 className="text-white font-medium mb-4 px-2">Conteúdo do Curso</h3>
       <div className="space-y-1">
         {lessons?.map((lesson, index) => {
-          const isCompleted = lesson.user_progress?.some(progress => progress.completed_at);
+          const isCompleted = lesson.user_progress?.some(
+            progress => progress.completed_at && progress.progress_percentage >= 80
+          );
           
           return (
             <button
