@@ -15,7 +15,7 @@ const EbookViewer = ({ ebook, currentPage, onPageChange }: EbookViewerProps) => 
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 relative min-h-[70vh]">
+      <div className="flex-1 relative min-h-[90vh]">
         <iframe
           src={ebook.pdf_url}
           className="w-full h-full absolute inset-0"
