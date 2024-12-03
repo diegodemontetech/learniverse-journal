@@ -9,7 +9,7 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="min-h-screen bg-[#0f0f0f]">
       <Sidebar />
-      <main className="content-transition ml-16 p-4">
+      <main className="ml-16 p-4">
         {children}
       </main>
     </div>

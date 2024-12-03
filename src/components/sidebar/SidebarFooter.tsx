@@ -4,11 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
-interface SidebarFooterProps {
-  isCollapsed: boolean;
-}
-
-const SidebarFooter = ({ isCollapsed }: SidebarFooterProps) => {
+const SidebarFooter = () => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -25,45 +21,39 @@ const SidebarFooter = ({ isCollapsed }: SidebarFooterProps) => {
   };
 
   return (
-    <div className="p-2 border-t border-i2know-card">
+    <div className="p-2 mt-auto">
       <ul className="space-y-1">
         <li>
           <a
             href="/profile"
-            className={cn(
-              "flex items-center justify-center space-x-2 p-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors",
-              "font-bold", // Made text bold
-              !isCollapsed && "justify-start"
-            )}
+            className="flex items-center justify-center p-3 rounded-lg text-gray-400 hover:text-white transition-colors relative group"
           >
-            <User className="w-5 h-5 text-white" /> {/* Increased size by 30% and made white */}
-            {!isCollapsed && <span className="leading-none text-white">Profile</span>} {/* Made text white */}
+            <User className="w-5 h-5" />
+            <span className="absolute left-14 bg-gray-800 text-white px-2 py-1 rounded text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+              Profile
+            </span>
           </a>
         </li>
         <li>
           <a
             href="/settings"
-            className={cn(
-              "flex items-center justify-center space-x-2 p-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors",
-              "font-bold", // Made text bold
-              !isCollapsed && "justify-start"
-            )}
+            className="flex items-center justify-center p-3 rounded-lg text-gray-400 hover:text-white transition-colors relative group"
           >
-            <Settings className="w-5 h-5 text-white" /> {/* Increased size by 30% and made white */}
-            {!isCollapsed && <span className="leading-none text-white">Settings</span>} {/* Made text white */}
+            <Settings className="w-5 h-5" />
+            <span className="absolute left-14 bg-gray-800 text-white px-2 py-1 rounded text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+              Settings
+            </span>
           </a>
         </li>
         <li>
           <button
             onClick={handleLogout}
-            className={cn(
-              "w-full flex items-center justify-center space-x-2 p-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors",
-              "font-bold", // Made text bold
-              !isCollapsed && "justify-start"
-            )}
+            className="w-full flex items-center justify-center p-3 rounded-lg text-gray-400 hover:text-white transition-colors relative group"
           >
-            <LogOut className="w-5 h-5 text-white" /> {/* Increased size by 30% and made white */}
-            {!isCollapsed && <span className="leading-none text-white">Logout</span>} {/* Made text white */}
+            <LogOut className="w-5 h-5" />
+            <span className="absolute left-14 bg-gray-800 text-white px-2 py-1 rounded text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+              Logout
+            </span>
           </button>
         </li>
       </ul>
