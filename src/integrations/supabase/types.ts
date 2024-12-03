@@ -315,6 +315,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           first_name: string | null
+          group_id: string | null
           id: string
           last_name: string | null
           level: number | null
@@ -326,6 +327,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           first_name?: string | null
+          group_id?: string | null
           id: string
           last_name?: string | null
           level?: number | null
@@ -337,6 +339,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           first_name?: string | null
+          group_id?: string | null
           id?: string
           last_name?: string | null
           level?: number | null
@@ -344,7 +347,15 @@ export type Database = {
           role?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "user_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quiz_attempts: {
         Row: {
@@ -499,6 +510,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_groups: {
+        Row: {
+          course_access: string[] | null
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          course_access?: string[] | null
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          course_access?: string[] | null
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       user_progress: {
         Row: {
