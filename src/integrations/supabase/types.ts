@@ -116,6 +116,35 @@ export type Database = {
           },
         ]
       }
+      daily_logins: {
+        Row: {
+          id: string
+          login_date: string
+          points_earned: number | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          login_date?: string
+          points_earned?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          login_date?: string
+          points_earned?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_logins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ebooks: {
         Row: {
           author: string
@@ -242,6 +271,45 @@ export type Database = {
           },
         ]
       }
+      news_reads: {
+        Row: {
+          id: string
+          news_id: string | null
+          points_earned: number | null
+          read_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          news_id?: string | null
+          points_earned?: number | null
+          read_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          news_id?: string | null
+          points_earned?: number | null
+          read_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_reads_news_id_fkey"
+            columns: ["news_id"]
+            isOneToOne: false
+            referencedRelation: "news"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "news_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -277,6 +345,48 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      quiz_attempts: {
+        Row: {
+          completed_at: string | null
+          id: string
+          points_earned: number | null
+          quiz_id: string | null
+          score: number
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          points_earned?: number | null
+          quiz_id?: string | null
+          score?: number
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          points_earned?: number | null
+          quiz_id?: string | null
+          score?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_attempts_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_attempts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quiz_questions: {
         Row: {

@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, FileText, Star, Eye } from "lucide-react";
+import { BookOpen, FileText, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type SortOption = "latest" | "rating" | "a-z";
@@ -146,13 +146,9 @@ const Ebooks = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <div className="flex items-center gap-2 text-yellow-400 mb-2">
-                      <Star className="w-4 h-4" />
-                      <span className="text-sm">8.5</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-i2know-text-secondary text-sm">
-                      <Eye className="w-4 h-4" />
-                      <span>1.5k reads</span>
+                    <div className="flex items-center gap-2 text-[#39FF14] mb-2">
+                      <Eye className="w-5 h-5 animate-pulse" />
+                      <span className="text-sm">Read now</span>
                     </div>
                   </div>
                 </div>
