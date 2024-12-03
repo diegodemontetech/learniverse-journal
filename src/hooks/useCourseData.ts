@@ -45,7 +45,7 @@ export const useCourseData = (courseId: string | undefined) => {
       // Attach progress data to each lesson
       const lessonsWithProgress = courseData.lessons?.map(lesson => ({
         ...lesson,
-        user_progress: userProgress.filter(progress => progress.lesson_id === lesson.id)
+        user_progress: userProgress.filter(progress => progress.lesson_id === lesson.id) || []
       }));
 
       return {
