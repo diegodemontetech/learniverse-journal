@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Courses from "./pages/Courses";
+import CourseView from "./pages/CourseView";
 import Ebooks from "./pages/Ebooks";
 import Journey from "./pages/Journey";
 import News from "./pages/News";
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<ProtectedContent><Index /></ProtectedContent>} />
             <Route path="/courses" element={<ProtectedContent><Courses /></ProtectedContent>} />
+            <Route path="/courses/:courseId" element={<ProtectedContent><CourseView /></ProtectedContent>} />
             <Route path="/ebooks" element={<ProtectedContent><Ebooks /></ProtectedContent>} />
             <Route path="/journey" element={<ProtectedContent><Journey /></ProtectedContent>} />
             <Route path="/news" element={<ProtectedContent><News /></ProtectedContent>} />

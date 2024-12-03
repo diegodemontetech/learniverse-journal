@@ -10,13 +10,15 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Clock, Tv, Star, Eye } from "lucide-react";
+import { Clock, Tv, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/components/ui/use-toast";
 
 type SortOption = "latest" | "rating" | "a-z";
 
 const Courses = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [sortBy, setSortBy] = useState<SortOption>("latest");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
@@ -36,7 +38,12 @@ const Courses = () => {
     queryFn: async () => {
       let query = supabase
         .from("courses")
-        .select("*, categories(name)");
+        .select(`
+          *,
+          categories(name),
+          lessons(count),
+          user_progress(progress_percentage)
+        `);
 
       if (selectedCategory !== "all") {
         query = query.eq("category_id", selectedCategory);
@@ -58,6 +65,38 @@ const Courses = () => {
       return data;
     },
   });
+
+  const handleCourseClick = async (courseId: string) => {
+    // Check if user has existing progress
+    const { data: progress } = await supabase
+      .from("user_progress")
+      .select("*")
+      .eq("course_id", courseId)
+      .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+      .single();
+
+    if (!progress) {
+      // Create initial progress record
+      const { error } = await supabase
+        .from("user_progress")
+        .insert({
+          course_id: courseId,
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          progress_percentage: 0
+        });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Could not start course. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    navigate(`/courses/${courseId}`);
+  };
 
   const renderSkeleton = () => (
     <>
@@ -136,7 +175,7 @@ const Courses = () => {
               <div
                 key={course.id}
                 className="group cursor-pointer"
-                onClick={() => navigate(`/courses/${course.id}`)}
+                onClick={() => handleCourseClick(course.id)}
               >
                 <div className="relative aspect-[2/3] rounded-lg overflow-hidden mb-3">
                   <img
@@ -146,13 +185,24 @@ const Courses = () => {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <div className="flex items-center gap-2 text-yellow-400 mb-2">
-                      <Star className="w-4 h-4" />
-                      <span className="text-sm">8.5</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-i2know-text-secondary text-sm">
+                    {course.user_progress?.[0]?.progress_percentage > 0 && (
+                      <div className="mb-2">
+                        <div className="h-1 bg-gray-700 rounded-full">
+                          <div
+                            className="h-full bg-red-600 rounded-full"
+                            style={{
+                              width: `${course.user_progress[0].progress_percentage}%`
+                            }}
+                          />
+                        </div>
+                        <p className="text-xs text-white mt-1">
+                          {course.user_progress[0].progress_percentage}% complete
+                        </p>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-white">
                       <Eye className="w-4 h-4" />
-                      <span>2.1k views</span>
+                      <span className="text-sm">Watch now</span>
                     </div>
                   </div>
                 </div>
