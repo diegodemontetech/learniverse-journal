@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import QuizProgress from "./QuizProgress";
+import QuizQuestion from "./QuizQuestion";
+import QuizResult from "./QuizResult";
 
 interface QuizProps {
   quizId: string;
@@ -25,6 +25,8 @@ const Quiz = ({ quizId, onComplete }: QuizProps) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+  const [quizScore, setQuizScore] = useState(0);
 
   const { data: quiz, isLoading: isLoadingQuiz } = useQuery({
     queryKey: ["quiz", quizId],
@@ -71,8 +73,8 @@ const Quiz = ({ quizId, onComplete }: QuizProps) => {
   const handleSubmit = async () => {
     if (Object.keys(selectedAnswers).length < questions.length) {
       toast({
-        title: "Error",
-        description: "Please answer all questions before submitting.",
+        title: "Erro",
+        description: "Por favor, responda todas as questões antes de enviar.",
         variant: "destructive",
       });
       return;
@@ -95,16 +97,12 @@ const Quiz = ({ quizId, onComplete }: QuizProps) => {
 
       if (error) throw error;
 
-      toast({
-        title: "Quiz Completed!",
-        description: `You scored ${percentageScore.toFixed(1)}% and earned ${score} points!`,
-      });
-
-      onComplete();
+      setQuizScore(percentageScore);
+      setShowResult(true);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to submit quiz. Please try again.",
+        title: "Erro",
+        description: "Erro ao enviar o quiz. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -112,69 +110,76 @@ const Quiz = ({ quizId, onComplete }: QuizProps) => {
     }
   };
 
+  const handleRetry = () => {
+    setCurrentQuestionIndex(0);
+    setSelectedAnswers({});
+    setShowResult(false);
+    setQuizScore(0);
+  };
+
   if (isLoadingQuiz) {
-    return <div>Loading quiz...</div>;
+    return <div>Carregando quiz...</div>;
   }
 
   if (!currentQuestion) {
-    return <div>No questions found.</div>;
+    return <div>Nenhuma questão encontrada.</div>;
+  }
+
+  if (showResult) {
+    return (
+      <QuizResult
+        score={quizScore}
+        passingScore={quiz?.passing_score || 50}
+        onRetry={handleRetry}
+      />
+    );
   }
 
   return (
-    <Card className="bg-[#1a1717] border-none">
-      <CardHeader>
-        <CardTitle className="text-white">
-          Question {currentQuestionIndex + 1} of {questions.length}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="text-lg text-white">{currentQuestion.question}</div>
-        <RadioGroup
-          value={selectedAnswers[currentQuestion.id]}
-          onValueChange={(value) => {
-            setSelectedAnswers(prev => ({
-              ...prev,
-              [currentQuestion.id]: value,
-            }));
-          }}
-        >
-          {currentQuestion.options.map((option: string, index: number) => (
-            <div key={index} className="flex items-center space-x-2">
-              <RadioGroupItem value={option} id={`option-${index}`} />
-              <Label htmlFor={`option-${index}`} className="text-white">
-                {option}
-              </Label>
-            </div>
-          ))}
-        </RadioGroup>
+    <div className="space-y-6">
+      <QuizProgress
+        currentQuestion={currentQuestionIndex}
+        totalQuestions={questions.length}
+      />
 
-        <div className="flex justify-between pt-4">
+      <QuizQuestion
+        question={currentQuestion.question}
+        options={currentQuestion.options}
+        selectedAnswer={selectedAnswers[currentQuestion.id] || ""}
+        onAnswerSelect={(answer) => {
+          setSelectedAnswers(prev => ({
+            ...prev,
+            [currentQuestion.id]: answer,
+          }));
+        }}
+      />
+
+      <div className="flex justify-between pt-4">
+        <Button
+          variant="outline"
+          onClick={handlePrevious}
+          disabled={currentQuestionIndex === 0}
+        >
+          Anterior
+        </Button>
+        {currentQuestionIndex === questions.length - 1 ? (
           <Button
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={currentQuestionIndex === 0}
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="bg-i2know-accent hover:bg-i2know-accent/90"
           >
-            Previous
+            Finalizar Quiz
           </Button>
-          {currentQuestionIndex === questions.length - 1 ? (
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="bg-i2know-accent hover:bg-i2know-accent/90"
-            >
-              Submit Quiz
-            </Button>
-          ) : (
-            <Button
-              onClick={handleNext}
-              disabled={!selectedAnswers[currentQuestion.id]}
-            >
-              Next
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+        ) : (
+          <Button
+            onClick={handleNext}
+            disabled={!selectedAnswers[currentQuestion.id]}
+          >
+            Próxima
+          </Button>
+        )}
+      </div>
+    </div>
   );
 };
 
