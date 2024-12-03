@@ -24,7 +24,7 @@ interface Ebook {
   pdf_url: string;
   total_pages: number;
   category_id: string;
-  category: {
+  category?: {
     name: string;
   };
 }
