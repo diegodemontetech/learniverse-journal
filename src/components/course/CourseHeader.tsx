@@ -1,4 +1,4 @@
-import { CheckCircle } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 interface CourseHeaderProps {
@@ -14,7 +14,10 @@ const CourseHeader = ({ title, description, progress }: CourseHeaderProps) => {
       <p className="text-[#aaaaaa] mb-4">{description}</p>
       <div className="flex items-center gap-2">
         <Progress value={progress} className="h-1 flex-1" />
-        <span className="text-sm text-[#aaaaaa]">{progress}% Complete</span>
+        <span className="text-sm text-[#aaaaaa] flex items-center gap-1">
+          <Trophy className="w-4 h-4" />
+          {progress}% Completo
+        </span>
       </div>
     </div>
   );
