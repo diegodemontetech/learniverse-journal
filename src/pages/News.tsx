@@ -37,11 +37,11 @@ const NewsCard = ({ article }: { article: NewsArticle }) => (
     <CardFooter className="flex items-center justify-between text-i2know-text-secondary text-sm">
       <div className="flex items-center gap-2">
         <User className="w-4 h-4" />
-        <span>{article.author?.first_name || "Anonymous"}</span>
+        <span>{article.author?.first_name || "Anônimo"}</span>
       </div>
       <div className="flex items-center gap-2">
         <Calendar className="w-4 h-4" />
-        <span>{format(new Date(article.created_at), "MMMM dd, yyyy")}</span>
+        <span>{format(new Date(article.created_at), "dd/MM/yyyy")}</span>
       </div>
       <button className="text-i2know-text-secondary hover:text-i2know-accent transition-colors">
         <Bookmark className="w-4 h-4" />
@@ -85,7 +85,7 @@ const News = () => {
   if (isLoading) {
     return (
       <div className="p-6 space-y-6">
-        <h1 className="text-3xl font-bold text-i2know-text-primary">Latest News</h1>
+        <h1 className="text-3xl font-bold text-i2know-text-primary">Últimas Notícias</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
             <NewsCardSkeleton key={i} />
@@ -97,7 +97,7 @@ const News = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold text-i2know-text-primary">Latest News</h1>
+      <h1 className="text-3xl font-bold text-i2know-text-primary">Últimas Notícias</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {news?.map((article) => (
           <NewsCard key={article.id} article={article} />
