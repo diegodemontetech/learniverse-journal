@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronRight, Home, Book, Newspaper, Trophy, Settings, LogOut, User } from 'lucide-react';
+import { ChevronRight, Home, Book, Newspaper, Trophy, Settings, LogOut, User, Navigation2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +15,7 @@ const Sidebar = () => {
     { icon: Book, label: 'E-Books', path: '/ebooks' },
     { icon: Newspaper, label: 'News', path: '/news' },
     { icon: Trophy, label: 'Journey', path: '/journey' },
+    { icon: Navigation2, label: 'Immersion', path: '/immersion' },
   ];
 
   const handleLogout = async () => {
