@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Camera, Phone, MapPin } from "lucide-react";
+import { Camera, Phone, MapPin, Building2, UserRoundCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -167,13 +167,30 @@ const Profile = () => {
             <h1 className="text-2xl font-bold text-white mb-2">
               {profile?.first_name} {profile?.last_name}
             </h1>
-            <p className="text-gray-400">{profile?.positions?.name}</p>
-            <p className="text-gray-400">{profile?.departments?.name}</p>
-            {profile?.reports_to && (
-              <p className="text-gray-400">
-                Reports to: {profile.reports_to.first_name} {profile.reports_to.last_name}
-              </p>
-            )}
+            
+            {/* Department and Position Information */}
+            <div className="space-y-2 text-gray-400">
+              {profile?.positions?.name && (
+                <div className="flex items-center gap-2">
+                  <UserRoundCog className="w-4 h-4" />
+                  <span>{profile.positions.name}</span>
+                </div>
+              )}
+              {profile?.departments?.name && (
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4" />
+                  <span>{profile.departments.name}</span>
+                </div>
+              )}
+              {profile?.reports_to && (
+                <div className="flex items-center gap-2 text-gray-400">
+                  <span className="text-gray-500">Reports to:</span>
+                  <span>
+                    {profile.reports_to.first_name} {profile.reports_to.last_name}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
