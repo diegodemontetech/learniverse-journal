@@ -53,7 +53,7 @@ export const useCourseData = (courseId: string | undefined) => {
         lessons: lessonsWithProgress
       };
     },
-    retry: 1,
+    enabled: !!courseId,
     meta: {
       onError: (error: Error) => {
         console.error("Error in course query:", error);

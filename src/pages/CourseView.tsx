@@ -12,7 +12,7 @@ import { useCourseData } from "@/hooks/useCourseData";
 import { LessonInteractions } from "@/components/course/lesson-interactions/LessonInteractions";
 
 const CourseView = () => {
-  const { courseId } = useParams();
+  const { id: courseId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
