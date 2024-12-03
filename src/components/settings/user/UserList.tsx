@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Pencil, Trash2, Ban } from "lucide-react";
+import { User } from "@supabase/supabase-js";
 
 const UserList = () => {
   const { toast } = useToast();
@@ -24,7 +25,7 @@ const UserList = () => {
       const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
       if (authError) throw authError;
 
-      const userIds = authUsers.map(user => user.id);
+      const userIds = (authUsers as User[]).map(user => user.id);
       
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
@@ -41,7 +42,7 @@ const UserList = () => {
       // Combine auth users with profiles
       return profiles.map(profile => ({
         ...profile,
-        email: authUsers.find(u => u.id === profile.id)?.email
+        email: (authUsers as User[]).find(u => u.id === profile.id)?.email
       }));
     },
   });
