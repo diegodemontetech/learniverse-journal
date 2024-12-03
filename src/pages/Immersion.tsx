@@ -3,13 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Navigation2 } from "lucide-react";
+import CourseManagementDialog from "@/components/immersion/CourseManagementDialog";
 
 const Immersion = () => {
-  const { toast } = useToast();
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
+  const [selectedPosition, setSelectedPosition] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const { data: departments, isLoading: isLoadingDepartments } = useQuery({
     queryKey: ["departments"],
@@ -100,12 +103,10 @@ const Immersion = () => {
                   <CardContent>
                     <Button 
                       variant="outline" 
-                      onClick={() => {
-                        toast({
-                          title: "Coming Soon",
-                          description: "Course management for this position will be available soon.",
-                        });
-                      }}
+                      onClick={() => setSelectedPosition({
+                        id: position.id,
+                        name: position.name,
+                      })}
                     >
                       Manage Courses
                     </Button>
@@ -115,6 +116,16 @@ const Immersion = () => {
             </div>
           )}
         </div>
+      )}
+
+      {/* Course Management Dialog */}
+      {selectedPosition && (
+        <CourseManagementDialog
+          positionId={selectedPosition.id}
+          positionName={selectedPosition.name}
+          open={!!selectedPosition}
+          onOpenChange={(open) => !open && setSelectedPosition(null)}
+        />
       )}
     </div>
   );

@@ -361,6 +361,39 @@ export type Database = {
           },
         ]
       }
+      position_courses: {
+        Row: {
+          course_id: string
+          created_at: string
+          position_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          position_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          position_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "position_courses_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "position_courses_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       position_immersion_courses: {
         Row: {
           created_at: string
