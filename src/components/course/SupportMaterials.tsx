@@ -33,10 +33,9 @@ const SupportMaterials = ({ lessonId }: SupportMaterialsProps) => {
 
       if (error) throw error;
 
-      // Create a temporary link to handle the download with the original filename
       const link = document.createElement('a');
       link.href = data.signedUrl;
-      link.download = fileName; // Use the original filename for download
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -54,18 +53,18 @@ const SupportMaterials = ({ lessonId }: SupportMaterialsProps) => {
   }
 
   return (
-    <div className="bg-[#161616] rounded-lg p-6">
+    <div className="bg-[#161616] rounded-lg p-4 sm:p-6">
       <h3 className="text-white font-medium mb-4">Materiais de Apoio</h3>
       <div className="space-y-2">
         {materials.map((material) => (
           <Button
             key={material.id}
             variant="outline"
-            className="w-full justify-start gap-2 bg-[#272727] border-[#3a3a3a] text-white hover:bg-[#3a3a3a]"
+            className="w-full justify-start gap-2 bg-[#272727] border-[#3a3a3a] text-white hover:bg-[#3a3a3a] min-h-[44px]"
             onClick={() => handleDownload(material.file_path, material.title)}
           >
-            <FileText className="w-4 h-4" />
-            {material.title}
+            <FileText className="min-w-[16px] w-4 h-4" />
+            <span className="truncate">{material.title}</span>
           </Button>
         ))}
       </div>
