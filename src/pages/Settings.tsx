@@ -24,13 +24,28 @@ const Settings = () => {
           throw new Error("Not authenticated");
         }
 
-        const { data: profile, error } = await supabase
+        // Try to get the profile
+        let { data: profile, error } = await supabase
           .from("profiles")
           .select("role")
           .eq("id", user.id)
           .single();
 
-        if (error || !profile || profile.role !== "admin") {
+        // If profile doesn't exist, create it
+        if (error?.code === 'PGRST116') {
+          const { data: newProfile, error: createError } = await supabase
+            .from("profiles")
+            .insert([{ id: user.id, role: 'user' }])
+            .select("role")
+            .single();
+
+          if (createError) throw createError;
+          profile = newProfile;
+        } else if (error) {
+          throw error;
+        }
+
+        if (!profile || profile.role !== "admin") {
           throw new Error("Not authorized");
         }
       } catch (error) {
