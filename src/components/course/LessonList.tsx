@@ -1,5 +1,4 @@
 import React from "react";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CheckCircle, PlayCircle } from "lucide-react";
 
 interface Lesson {
@@ -17,38 +16,31 @@ interface LessonListProps {
 
 const LessonList = ({ lessons, currentLessonId, onLessonSelect }: LessonListProps) => {
   return (
-    <div className="space-y-4">
-      {lessons?.map((lesson) => (
-        <Card
-          key={lesson.id}
-          className={`bg-[#1a1717] border-none cursor-pointer transition-colors ${
-            currentLessonId === lesson.id
-              ? "ring-2 ring-i2know-accent"
-              : "hover:bg-[#2a2727]"
-          }`}
-          onClick={() => onLessonSelect(lesson.id)}
-        >
-          <CardHeader className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {lesson.user_progress?.[0]?.completed_at ? (
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                ) : (
-                  <PlayCircle className="w-5 h-5 text-i2know-accent" />
-                )}
-                <div>
-                  <CardTitle className="text-sm text-white">
-                    {lesson.title}
-                  </CardTitle>
-                  <CardDescription>
-                    {lesson.duration} minutes
-                  </CardDescription>
-                </div>
-              </div>
+    <div className="bg-[#161616] rounded-lg p-4">
+      <h3 className="text-white font-medium mb-4 px-2">Course Content</h3>
+      <div className="space-y-1">
+        {lessons?.map((lesson) => (
+          <button
+            key={lesson.id}
+            onClick={() => onLessonSelect(lesson.id)}
+            className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
+              currentLessonId === lesson.id
+                ? "bg-[#2a2727]"
+                : "hover:bg-[#1f1f1f]"
+            }`}
+          >
+            {lesson.user_progress?.[0]?.completed_at ? (
+              <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+            ) : (
+              <PlayCircle className="w-5 h-5 text-white flex-shrink-0" />
+            )}
+            <div className="flex-1 text-left">
+              <p className="text-sm text-white truncate">{lesson.title}</p>
+              <p className="text-xs text-[#aaaaaa]">{lesson.duration} min</p>
             </div>
-          </CardHeader>
-        </Card>
-      ))}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

@@ -13,12 +13,12 @@ interface VideoPlayerProps {
 
 const VideoPlayer = ({ lesson, onComplete }: VideoPlayerProps) => {
   return (
-    <div>
-      <div className="aspect-video bg-black rounded-lg relative">
+    <div className="bg-[#161616] rounded-lg overflow-hidden">
+      <div className="aspect-video bg-black relative">
         {lesson?.youtube_url ? (
           <iframe
             src={lesson.youtube_url}
-            className="w-full h-full rounded-lg"
+            className="w-full h-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           />
@@ -29,16 +29,16 @@ const VideoPlayer = ({ lesson, onComplete }: VideoPlayerProps) => {
         )}
       </div>
 
-      <div className="mt-4">
-        <h2 className="text-xl font-bold text-white mb-2">
+      <div className="p-6">
+        <h2 className="text-xl font-bold text-white mb-3">
           {lesson.title}
         </h2>
-        <p className="text-i2know-text-secondary">
+        <p className="text-[#aaaaaa] mb-4">
           {lesson.description}
         </p>
         <Button
-          className="mt-4"
           onClick={() => onComplete(lesson.id)}
+          className="bg-[#1a1717] hover:bg-[#2a2727] text-white"
         >
           Mark as Complete
         </Button>
