@@ -2,18 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Progress } from "@/components/ui/progress";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle, PlayCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
+import VideoPlayer from "@/components/course/VideoPlayer";
+import LessonList from "@/components/course/LessonList";
+import Quiz from "@/components/quiz/Quiz";
 
 const CourseView = () => {
   const { courseId } = useParams();
@@ -39,21 +35,6 @@ const CourseView = () => {
         .single();
 
       if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: userProgress, isLoading: isLoadingProgress } = useQuery({
-    queryKey: ["userProgress", courseId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_progress")
-        .select("*")
-        .eq("course_id", courseId)
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
-        .single();
-
-      if (error && error.code !== "PGRST116") throw error;
       return data;
     },
   });
@@ -98,7 +79,7 @@ const CourseView = () => {
     return Math.round((completedLessons / course.lessons.length) * 100);
   };
 
-  if (isLoadingCourse || isLoadingProgress) {
+  if (isLoadingCourse) {
     return (
       <div className="p-8">
         <Skeleton className="h-8 w-64 mb-4" />
@@ -135,58 +116,27 @@ const CourseView = () => {
         <p className="text-i2know-text-secondary mb-8">{course.description}</p>
 
         <div className="grid grid-cols-3 gap-8">
-          {/* Video Player / Quiz Section */}
           <div className="col-span-2">
             {showQuiz ? (
-              <Card className="bg-[#1a1717] border-none">
-                <CardHeader>
-                  <CardTitle className="text-white">Course Quiz</CardTitle>
-                  <CardDescription>
-                    Complete the quiz to finish the course
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {/* Quiz component will be implemented separately */}
-                  <p className="text-white">Quiz content coming soon...</p>
-                </CardContent>
-              </Card>
+              <Quiz
+                quizId={course.quizzes[0].id}
+                onComplete={() => {
+                  toast({
+                    title: "Congratulations!",
+                    description: "You've completed the course!",
+                  });
+                }}
+              />
             ) : (
-              <div className="aspect-video bg-black rounded-lg relative">
-                {currentLesson?.youtube_url ? (
-                  <iframe
-                    src={currentLesson.youtube_url}
-                    className="w-full h-full rounded-lg"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-white">No video available</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Current Lesson Info */}
-            {currentLesson && !showQuiz && (
-              <div className="mt-4">
-                <h2 className="text-xl font-bold text-white mb-2">
-                  {currentLesson.title}
-                </h2>
-                <p className="text-i2know-text-secondary">
-                  {currentLesson.description}
-                </p>
-                <Button
-                  className="mt-4"
-                  onClick={() => handleLessonComplete(currentLesson.id)}
-                >
-                  Mark as Complete
-                </Button>
-              </div>
+              currentLesson && (
+                <VideoPlayer
+                  lesson={currentLesson}
+                  onComplete={handleLessonComplete}
+                />
+              )
             )}
           </div>
 
-          {/* Lessons List */}
           <div className="space-y-4">
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-white mb-2">
@@ -198,40 +148,14 @@ const CourseView = () => {
               </p>
             </div>
 
-            {course.lessons?.map((lesson) => (
-              <Card
-                key={lesson.id}
-                className={`bg-[#1a1717] border-none cursor-pointer transition-colors ${
-                  currentLessonId === lesson.id
-                    ? "ring-2 ring-i2know-accent"
-                    : "hover:bg-[#2a2727]"
-                }`}
-                onClick={() => {
-                  setCurrentLessonId(lesson.id);
-                  setShowQuiz(false);
-                }}
-              >
-                <CardHeader className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {lesson.user_progress?.[0]?.completed_at ? (
-                        <CheckCircle className="w-5 h-5 text-green-500" />
-                      ) : (
-                        <PlayCircle className="w-5 h-5 text-i2know-accent" />
-                      )}
-                      <div>
-                        <CardTitle className="text-sm text-white">
-                          {lesson.title}
-                        </CardTitle>
-                        <CardDescription>
-                          {lesson.duration} minutes
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-              </Card>
-            ))}
+            <LessonList
+              lessons={course.lessons}
+              currentLessonId={currentLessonId}
+              onLessonSelect={(id) => {
+                setCurrentLessonId(id);
+                setShowQuiz(false);
+              }}
+            />
 
             {course.quizzes?.[0] && (
               <Card
