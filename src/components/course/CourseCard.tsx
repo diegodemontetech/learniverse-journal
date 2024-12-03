@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Clock, Tv } from "lucide-react";
+import { Clock, Tv, Eye } from "lucide-react";
 import { Course } from "@/types/course";
 import CourseStatusBadge from "./CourseStatusBadge";
 

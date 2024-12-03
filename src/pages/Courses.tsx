@@ -121,7 +121,7 @@ const Courses = () => {
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
         statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
+        setStatusFilter={setStatusFilter as (status: StatusFilter) => void}
       />
 
       <CourseGrid
