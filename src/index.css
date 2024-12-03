@@ -58,33 +58,39 @@
 [data-radix-dialog-overlay] {
   background: rgba(0, 0, 0, 0.4) !important;
   z-index: 40 !important;
-  pointer-events: none !important;
 }
 
 [data-radix-dialog-content] {
   position: relative !important;
   z-index: 50 !important;
   background-color: #1a1717 !important;
-  pointer-events: auto !important;
 }
 
 /* Form Fields Styles */
 input, 
 select, 
-textarea, 
+textarea {
+  background-color: #2C2C2C !important;
+  color: white !important;
+  border: 1px solid #3f3f3f !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 51 !important;
+}
+
 button {
   position: relative !important;
   z-index: 51 !important;
   pointer-events: auto !important;
-  opacity: 1 !important;
-  cursor: text !important;
-  background-color: #2C2C2C !important;
-  color: white !important;
-  border: none !important;
+  cursor: pointer !important;
 }
 
-button {
-  cursor: pointer !important;
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid #4f4f4f !important;
+  border-color: #4f4f4f !important;
 }
 
 /* Dialog Form Fields */
@@ -97,13 +103,6 @@ button {
   pointer-events: auto !important;
   opacity: 1 !important;
   z-index: 52 !important;
-}
-
-[data-radix-dialog-content] input:focus,
-[data-radix-dialog-content] select:focus,
-[data-radix-dialog-content] textarea:focus {
-  outline: 2px solid #4f4f4f !important;
-  border-color: #4f4f4f !important;
 }
 
 /* Remove overlay effects */
