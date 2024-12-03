@@ -1,19 +1,11 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Navigation2 } from "lucide-react";
-import CourseManagementDialog from "@/components/immersion/CourseManagementDialog";
+import { Navigation2, CheckCircle2, Lock } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 const Immersion = () => {
-  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
-  const [selectedPosition, setSelectedPosition] = useState<{
-    id: string;
-    name: string;
-  } | null>(null);
-
   const { data: userProfile } = useQuery({
     queryKey: ["user-profile"],
     queryFn: async () => {
@@ -31,31 +23,6 @@ const Immersion = () => {
     },
   });
 
-  const { data: departments, isLoading: isLoadingDepartments } = useQuery({
-    queryKey: ["departments"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("departments")
-        .select("*");
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: positions, isLoading: isLoadingPositions } = useQuery({
-    queryKey: ["positions", selectedDepartment],
-    queryFn: async () => {
-      if (!selectedDepartment) return [];
-      const { data, error } = await supabase
-        .from("positions")
-        .select("*")
-        .eq("department_id", selectedDepartment);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!selectedDepartment,
-  });
-
   const { data: immersionCourses, isLoading: isLoadingCourses } = useQuery({
     queryKey: ["immersion-courses", userProfile?.position_id],
     queryFn: async () => {
@@ -63,8 +30,15 @@ const Immersion = () => {
       
       const { data, error } = await supabase
         .from("position_courses")
-        .select("*, courses(*)")
-        .eq("position_id", userProfile.position_id);
+        .select(`
+          *,
+          courses(
+            *,
+            user_progress(*)
+          )
+        `)
+        .eq("position_id", userProfile.position_id)
+        .order("created_at", { ascending: true });
       
       if (error) throw error;
       return data;
@@ -72,16 +46,14 @@ const Immersion = () => {
     enabled: !!userProfile?.position_id,
   });
 
-  const isAdmin = userProfile?.role === "admin";
-
   if (isLoadingCourses) {
     return (
       <div className="p-8">
         <div className="flex items-center gap-2 mb-6">
           <Navigation2 className="w-6 h-6 text-i2know-accent" />
-          <h1 className="text-2xl font-bold text-white">Imersão</h1>
+          <h1 className="text-2xl font-bold text-white">Trilha de Imersão</h1>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-32" />
           ))}
@@ -90,107 +62,65 @@ const Immersion = () => {
     );
   }
 
-  if (!isAdmin) {
-    return (
-      <div className="p-8">
-        <div className="flex items-center gap-2 mb-6">
-          <Navigation2 className="w-6 h-6 text-i2know-accent" />
-          <h1 className="text-2xl font-bold text-white">Trilha de Imersão</h1>
-        </div>
+  const calculateProgress = (course: any) => {
+    if (!course.user_progress?.length) return 0;
+    return course.user_progress[0].progress_percentage || 0;
+  };
 
-        {userProfile?.position_id ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {immersionCourses?.map((item: any) => (
-              <Card key={item.course_id} className="bg-i2know-card border-none">
-                <CardHeader>
-                  <CardTitle className="text-white">{item.courses.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-i2know-text-secondary">{item.courses.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <p className="text-white">Nenhum cargo atribuído ainda. Entre em contato com seu administrador.</p>
-        )}
-      </div>
-    );
-  }
+  const isCourseLocked = (index: number) => {
+    if (index === 0) return false;
+    const previousCourse = immersionCourses?.[index - 1]?.courses;
+    return previousCourse && calculateProgress(previousCourse) < 100;
+  };
 
   return (
     <div className="p-8">
       <div className="flex items-center gap-2 mb-6">
         <Navigation2 className="w-6 h-6 text-i2know-accent" />
-        <h1 className="text-2xl font-bold text-white">Gerenciar Imersão</h1>
+        <h1 className="text-2xl font-bold text-white">Trilha de Imersão</h1>
       </div>
 
-      {/* Departments */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        {isLoadingDepartments ? (
-          [1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-32" />
-          ))
-        ) : (
-          departments?.map((department) => (
-            <Card 
-              key={department.id}
-              className={`bg-i2know-card border-none cursor-pointer transition-colors ${
-                selectedDepartment === department.id ? 'ring-2 ring-i2know-accent' : ''
-              }`}
-              onClick={() => setSelectedDepartment(department.id)}
-            >
-              <CardHeader>
-                <CardTitle className="text-white">{department.name}</CardTitle>
-              </CardHeader>
-            </Card>
-          ))
-        )}
-      </div>
+      {userProfile?.position_id ? (
+        <div className="space-y-4 max-w-3xl mx-auto">
+          {immersionCourses?.map((item: any, index: number) => {
+            const progress = calculateProgress(item.courses);
+            const locked = isCourseLocked(index);
 
-      {/* Positions */}
-      {selectedDepartment && (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-white mb-4">Cargos</h2>
-          {isLoadingPositions ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-24" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {positions?.map((position) => (
-                <Card key={position.id} className="bg-i2know-card border-none">
-                  <CardHeader>
-                    <CardTitle className="text-white">{position.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setSelectedPosition({
-                        id: position.id,
-                        name: position.name,
-                      })}
-                    >
-                      Gerenciar Cursos
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+            return (
+              <Card 
+                key={item.course_id} 
+                className={`bg-i2know-card border-none relative ${
+                  locked ? 'opacity-50' : ''
+                }`}
+              >
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-white flex items-center gap-2">
+                    {progress === 100 && (
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                    )}
+                    {locked && (
+                      <Lock className="w-5 h-5 text-gray-500" />
+                    )}
+                    {item.courses.title}
+                  </CardTitle>
+                  <span className="text-sm text-i2know-text-secondary">
+                    {progress}% concluído
+                  </span>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-i2know-text-secondary mb-4">
+                    {item.courses.description}
+                  </p>
+                  <Progress value={progress} className="h-2" />
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
-      )}
-
-      {/* Course Management Dialog */}
-      {selectedPosition && (
-        <CourseManagementDialog
-          positionId={selectedPosition.id}
-          positionName={selectedPosition.name}
-          open={!!selectedPosition}
-          onOpenChange={(open) => !open && setSelectedPosition(null)}
-        />
+      ) : (
+        <p className="text-white text-center">
+          Nenhum cargo atribuído ainda. Entre em contato com seu administrador.
+        </p>
       )}
     </div>
   );

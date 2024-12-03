@@ -1,10 +1,17 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
+import CourseManagementDialog from "@/components/immersion/CourseManagementDialog";
 
 const ImmersionTab = () => {
+  const [selectedPosition, setSelectedPosition] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
   const { data: departments, isLoading } = useQuery({
     queryKey: ["departments"],
     queryFn: async () => {
@@ -39,7 +46,13 @@ const ImmersionTab = () => {
                 {department.positions?.map((position: any) => (
                   <div key={position.id} className="flex items-center justify-between">
                     <span className="text-white">{position.name}</span>
-                    <Button variant="outline">
+                    <Button 
+                      variant="outline"
+                      onClick={() => setSelectedPosition({
+                        id: position.id,
+                        name: position.name,
+                      })}
+                    >
                       Gerenciar Cursos de Imersão
                     </Button>
                   </div>
@@ -49,6 +62,15 @@ const ImmersionTab = () => {
           </Card>
         ))}
       </div>
+
+      {selectedPosition && (
+        <CourseManagementDialog
+          positionId={selectedPosition.id}
+          positionName={selectedPosition.name}
+          open={!!selectedPosition}
+          onOpenChange={(open) => !open && setSelectedPosition(null)}
+        />
+      )}
     </div>
   );
 };
