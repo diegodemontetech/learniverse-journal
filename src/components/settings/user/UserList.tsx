@@ -13,43 +13,35 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Pencil, Trash2, Ban } from "lucide-react";
-import { User } from "@supabase/supabase-js";
 
 const UserList = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: users, refetch } = useQuery({
-    queryKey: ["users"],
+    queryKey: ["profiles"],
     queryFn: async () => {
-      const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
-      if (authError) throw authError;
-
-      const userIds = (authUsers as User[]).map(user => user.id);
-      
-      const { data: profiles, error: profilesError } = await supabase
+      const { data: profiles, error } = await supabase
         .from("profiles")
         .select(`
           *,
           departments(name),
           positions(name),
           user_groups(name)
-        `)
-        .in('id', userIds);
+        `);
 
-      if (profilesError) throw profilesError;
-
-      // Combine auth users with profiles
-      return profiles.map(profile => ({
-        ...profile,
-        email: (authUsers as User[]).find(u => u.id === profile.id)?.email
-      }));
+      if (error) throw error;
+      return profiles;
     },
   });
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      const { error } = await supabase.auth.admin.deleteUser(userId);
+      const { error } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
       if (error) throw error;
 
       toast({
@@ -68,8 +60,7 @@ const UserList = () => {
 
   const filteredUsers = users?.filter(user => 
     user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    user.last_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -86,7 +77,6 @@ const UserList = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
-              <TableHead>Email</TableHead>
               <TableHead>Departamento</TableHead>
               <TableHead>Cargo</TableHead>
               <TableHead>Grupo</TableHead>
@@ -96,8 +86,7 @@ const UserList = () => {
           <TableBody>
             {filteredUsers?.map((user) => (
               <TableRow key={user.id}>
-                <TableCell>{`${user.first_name} ${user.last_name}`}</TableCell>
-                <TableCell>{user.email}</TableCell>
+                <TableCell>{`${user.first_name || ''} ${user.last_name || ''}`}</TableCell>
                 <TableCell>{user.departments?.name}</TableCell>
                 <TableCell>{user.positions?.name}</TableCell>
                 <TableCell>{user.user_groups?.name}</TableCell>

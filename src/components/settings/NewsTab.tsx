@@ -30,7 +30,10 @@ const NewsTab = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("news")
-        .select("*")
+        .select(`
+          *,
+          author:profiles(first_name, last_name)
+        `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -38,14 +41,26 @@ const NewsTab = () => {
     },
   });
 
-  const handleSubmit = (formData: any) => {
-    if (editingNews) {
-      updateNewsMutation.mutate({ id: editingNews.id, data: formData });
-    } else {
-      createNewsMutation.mutate(formData);
+  const handleSubmit = async (formData: any) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
+      const newsData = {
+        ...formData,
+        author_id: user.id
+      };
+
+      if (editingNews) {
+        await updateNewsMutation.mutateAsync({ id: editingNews.id, data: newsData });
+      } else {
+        await createNewsMutation.mutateAsync(newsData);
+      }
+      setIsOpen(false);
+      setEditingNews(null);
+    } catch (error) {
+      console.error("Error submitting news:", error);
     }
-    setIsOpen(false);
-    setEditingNews(null);
   };
 
   const handleEdit = (news: News) => {
