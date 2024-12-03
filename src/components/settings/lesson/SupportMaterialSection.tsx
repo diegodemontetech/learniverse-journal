@@ -38,15 +38,20 @@ const SupportMaterialSection = ({ lessonId, onUploadComplete }: SupportMaterialS
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
 
+      // Create a custom upload handler to track progress
+      const xhr = new XMLHttpRequest();
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const percent = (event.loaded / event.total) * 100;
+          setUploadProgress(Math.round(percent));
+        }
+      });
+
       const { data, error } = await supabase.storage
         .from('support_materials')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false,
-          onUploadProgress: (progress) => {
-            const percent = (progress.loaded / progress.total) * 100;
-            setUploadProgress(Math.round(percent));
-          },
+          upsert: false
         });
 
       if (error) throw error;
