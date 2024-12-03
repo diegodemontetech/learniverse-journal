@@ -21,30 +21,30 @@ const SidebarFooter = () => {
   };
 
   return (
-    <div className="p-4 border-t border-gray-800">
+    <div className="p-4 border-t border-gray-800/30">
       <ul className="space-y-2">
         <li>
           <Link
             to="/profile"
-            className="flex items-center justify-center p-3 rounded-lg text-white hover:bg-gray-800 transition-colors"
+            className="flex items-center justify-center p-2 rounded-lg text-white hover:bg-gray-800 transition-colors"
           >
-            <User className="w-8 h-8" />
+            <User className="w-5 h-5" />
           </Link>
         </li>
         <li>
           <Link
             to="/settings"
-            className="flex items-center justify-center p-3 rounded-lg text-white hover:bg-gray-800 transition-colors"
+            className="flex items-center justify-center p-2 rounded-lg text-white hover:bg-gray-800 transition-colors"
           >
-            <Settings className="w-8 h-8" />
+            <Settings className="w-5 h-5" />
           </Link>
         </li>
         <li>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center p-3 rounded-lg text-white hover:bg-gray-800 transition-colors"
+            className="w-full flex items-center justify-center p-2 rounded-lg text-white hover:bg-gray-800 transition-colors"
           >
-            <LogOut className="w-8 h-8" />
+            <LogOut className="w-5 h-5" />
           </button>
         </li>
       </ul>
