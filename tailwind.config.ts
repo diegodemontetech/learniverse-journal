@@ -21,7 +21,7 @@ export default {
       colors: {
         i2know: {
           sidebar: "#231f1f",
-          body: "#2c2c2c",
+          body: "#2a2525", // Ajustado para um preto mais claro que o sidebar
           accent: "#e80514",
           card: "#333333",
           text: {
