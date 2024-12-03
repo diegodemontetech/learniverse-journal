@@ -1,4 +1,4 @@
-import { Settings, LogOut, User } from 'lucide-react';
+import { User, Settings, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,22 +28,22 @@ const SidebarFooter = ({ isCollapsed }: SidebarFooterProps) => {
     <div className="p-4 border-t border-i2know-card">
       <ul className="space-y-2">
         <li>
-          <a
-            href="/profile"
+          <Link
+            to="/profile"
             className="flex items-center space-x-3 p-3 rounded-lg text-i2know-text-secondary hover:bg-i2know-card hover:text-i2know-text-primary transition-colors"
           >
             <User className={cn("w-6 h-6", isCollapsed && "w-8 h-8")} />
             {!isCollapsed && <span>Profile</span>}
-          </a>
+          </Link>
         </li>
         <li>
-          <a
-            href="/settings"
+          <Link
+            to="/settings"
             className="flex items-center space-x-3 p-3 rounded-lg text-i2know-text-secondary hover:bg-i2know-card hover:text-i2know-text-primary transition-colors"
           >
             <Settings className={cn("w-6 h-6", isCollapsed && "w-8 h-8")} />
             {!isCollapsed && <span>Settings</span>}
-          </a>
+          </Link>
         </li>
         <li>
           <button
