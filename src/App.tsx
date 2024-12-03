@@ -3,12 +3,15 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { createClient } from "@supabase/supabase-js";
 import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Courses from "./pages/Courses";
+import Ebooks from "./pages/Ebooks";
+import Journey from "./pages/Journey";
+import Layout from "./components/Layout";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +33,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return isAuthenticated ? <>{children}</> : <Navigate to="/auth" />;
 };
 
+// Wrap protected content with Layout
+const ProtectedContent = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute>
+    <Layout>{children}</Layout>
+  </ProtectedRoute>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <SessionContextProvider supabaseClient={supabase}>
@@ -39,14 +49,10 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/" element={<ProtectedContent><Index /></ProtectedContent>} />
+            <Route path="/courses" element={<ProtectedContent><Courses /></ProtectedContent>} />
+            <Route path="/ebooks" element={<ProtectedContent><Ebooks /></ProtectedContent>} />
+            <Route path="/journey" element={<ProtectedContent><Journey /></ProtectedContent>} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
