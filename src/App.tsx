@@ -15,6 +15,7 @@ import Journey from "./pages/Journey";
 import News from "./pages/News";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
+import Immersion from "./pages/Immersion";
 import Layout from "./components/Layout";
 
 const queryClient = new QueryClient();
@@ -60,6 +61,7 @@ const App = () => (
             <Route path="/news" element={<ProtectedContent><News /></ProtectedContent>} />
             <Route path="/settings" element={<ProtectedContent><Settings /></ProtectedContent>} />
             <Route path="/profile" element={<ProtectedContent><Profile /></ProtectedContent>} />
+            <Route path="/immersion" element={<ProtectedContent><Immersion /></ProtectedContent>} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
