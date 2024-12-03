@@ -17,7 +17,7 @@ interface LessonListProps {
 const LessonList = ({ lessons, currentLessonId, onLessonSelect }: LessonListProps) => {
   return (
     <div className="bg-[#161616] rounded-lg p-4">
-      <h3 className="text-white font-medium mb-4 px-2">Course Content</h3>
+      <h3 className="text-white font-medium mb-4 px-2">Conteúdo do Curso</h3>
       <div className="space-y-1">
         {lessons?.map((lesson, index) => {
           const isCompleted = lesson.user_progress?.some(progress => progress.completed_at);

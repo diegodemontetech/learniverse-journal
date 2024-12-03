@@ -28,19 +28,18 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
       if (!lesson.video_file_path) return;
 
       try {
-        // Create signed URL directly from the video_file_path
         const { data: { signedUrl }, error } = await supabase.storage
           .from('lesson_videos')
           .createSignedUrl(lesson.video_file_path, 3600);
 
         if (error) {
-          console.error("Error creating signed URL:", error);
+          console.error("Erro ao criar URL assinada:", error);
           throw error;
         }
 
         setVideoUrl(signedUrl);
 
-        // Try to get existing progress
+        // Tentar obter progresso existente
         const { data: { user } } = await supabase.auth.getUser();
         if (!user?.id) return;
 
@@ -55,7 +54,7 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
           setProgress(progressData.progress_percentage || 0);
         }
       } catch (error) {
-        console.error("Error loading video:", error);
+        console.error("Erro ao carregar vídeo:", error);
       }
     };
 
@@ -100,7 +99,7 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
 
       if (error) throw error;
     } catch (error) {
-      console.error("Error updating progress:", error);
+      console.error("Erro ao atualizar progresso:", error);
     }
   };
 
@@ -121,10 +120,10 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
     setIsMuted(!isMuted);
   };
 
-  if (!videoUrl) {
+  if (!videoUrl && !lesson.youtube_url) {
     return (
       <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
-        <p className="text-white">No video available</p>
+        <p className="text-white">Nenhum vídeo disponível</p>
       </div>
     );
   }
