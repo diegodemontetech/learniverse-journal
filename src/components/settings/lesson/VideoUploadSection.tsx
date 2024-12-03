@@ -40,17 +40,46 @@ const VideoUploadSection = ({ lessonId, onUploadComplete }: VideoUploadSectionPr
         throw new Error("Usuário não autenticado");
       }
 
-      // Upload the file with progress tracking
-      const { data, error } = await supabase.storage
-        .from('lesson_videos')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false,
-          onUploadProgress: (progress) => {
-            const percent = (progress.loaded / progress.total) * 100;
+      // Upload the file with progress tracking using XMLHttpRequest
+      const { data, error } = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            const percent = (event.loaded / event.total) * 100;
             setUploadProgress(Math.round(percent));
           }
         });
+
+        // Create a FormData object to send the file
+        const formData = new FormData();
+        formData.append('file', file);
+
+        // Get the upload URL from Supabase
+        supabase.storage
+          .from('lesson_videos')
+          .getUploadUrl(fileName)
+          .then(({ data: { url }, error: urlError }) => {
+            if (urlError) {
+              reject(urlError);
+              return;
+            }
+
+            xhr.open('POST', url);
+            xhr.setRequestHeader('Authorization', `Bearer ${supabase.auth.session()?.access_token}`);
+            
+            xhr.onload = () => {
+              if (xhr.status === 200) {
+                resolve({ data: { path: fileName }, error: null });
+              } else {
+                reject(new Error(`Upload failed with status ${xhr.status}`));
+              }
+            };
+
+            xhr.onerror = () => reject(new Error('Upload failed'));
+            xhr.send(formData);
+          });
+      });
 
       if (error) throw error;
 
