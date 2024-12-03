@@ -1,18 +1,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import QuestionForm from "./QuestionForm";
 import QuestionList from "./QuestionList";
+import QuestionFormDialog from "./components/QuestionFormDialog";
+import QuestionsHeader from "./components/QuestionsHeader";
 
 interface QuizQuestionsProps {
   quizId: string;
@@ -40,7 +32,7 @@ const QuizQuestions = ({ quizId }: QuizQuestionsProps) => {
     enabled: !!quizId,
   });
 
-  const onSubmit = async (values: any) => {
+  const handleSubmit = async (values: any) => {
     try {
       const options = values.options
         .split(",")
@@ -139,60 +131,27 @@ const QuizQuestions = ({ quizId }: QuizQuestionsProps) => {
     }
   };
 
-  if (!quizId) {
-    return (
-      <div className="text-center text-muted-foreground">
-        Selecione um quiz para gerenciar suas questões
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Questões do Quiz</h3>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button
-              onClick={() => {
-                setSelectedQuestion(null);
-              }}
-            >
-              Nova Questão
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {selectedQuestion ? "Editar Questão" : "Nova Questão"}
-              </DialogTitle>
-              <DialogDescription>
-                Preencha os campos abaixo para {selectedQuestion ? "editar a" : "criar uma nova"} questão.
-              </DialogDescription>
-            </DialogHeader>
-            <QuestionForm
-              onSubmit={onSubmit}
-              defaultValues={
-                selectedQuestion
-                  ? {
-                      question: selectedQuestion.question,
-                      correctAnswer: selectedQuestion.correct_answer,
-                      options: selectedQuestion.options.join(", "),
-                      orderNumber: selectedQuestion.order_number,
-                      points: selectedQuestion.points,
-                    }
-                  : undefined
-              }
-              isEdit={!!selectedQuestion}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
+      <QuestionsHeader
+        quizId={quizId}
+        onNewQuestion={() => {
+          setSelectedQuestion(null);
+          setIsDialogOpen(true);
+        }}
+      />
 
       <QuestionList
         questions={questions}
         onEdit={handleEdit}
         onDelete={handleDelete}
+      />
+
+      <QuestionFormDialog
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        selectedQuestion={selectedQuestion}
+        onSubmit={handleSubmit}
       />
     </div>
   );
