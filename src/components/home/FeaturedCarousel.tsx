@@ -42,7 +42,7 @@ const FeaturedCarousel = ({ courses }: FeaturedCarouselProps) => {
 
   return (
     <div className="relative w-full overflow-hidden rounded-xl" style={{ 
-      aspectRatio: isMobile ? '16/13' : '16/9' 
+      aspectRatio: isMobile ? '16/15' : '16/9' // Changed from 16/13 to 16/15 for 50% taller on mobile
     }}>
       {/* Background Image */}
       <div 
