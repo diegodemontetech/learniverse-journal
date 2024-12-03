@@ -8,12 +8,16 @@ const Sidebar = () => {
 
   return (
     <div className={cn(
-      "w-20 h-screen bg-i2know-sidebar border-r border-i2know-accent/30",
-      isMobile ? "w-[250px]" : "w-20"
+      "h-screen bg-i2know-sidebar border-r border-i2know-accent/30",
+      isMobile ? "w-[250px]" : "w-20",
+      "shadow-xl"
     )}>
       <div className="flex flex-col h-full">
-        {/* Logo */}
-        <div className="p-4 flex justify-center items-center">
+        {/* Logo with padding adjustments */}
+        <div className={cn(
+          "flex justify-center items-center",
+          isMobile ? "p-6" : "p-4"
+        )}>
           <img
             src="https://i.ibb.co/W6FRw6H/i2know-1.png"
             alt="i2know logo"
