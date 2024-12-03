@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import { ChevronRight, Home, Book, Newspaper, Trophy, Settings, LogOut, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const navigate = useNavigate();
 
   const menuItems = [
     { icon: Home, label: 'Home', path: '/' },
@@ -12,6 +16,19 @@ const Sidebar = () => {
     { icon: Newspaper, label: 'News', path: '/news' },
     { icon: Trophy, label: 'Journey', path: '/journey' },
   ];
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate('/auth');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div
@@ -76,6 +93,7 @@ const Sidebar = () => {
             </li>
             <li>
               <button
+                onClick={handleLogout}
                 className="w-full flex items-center space-x-3 p-3 rounded-lg text-i2know-text-secondary hover:bg-i2know-card hover:text-i2know-text-primary transition-colors"
               >
                 <LogOut className={cn("w-6 h-6", isCollapsed && "w-8 h-8")} />
