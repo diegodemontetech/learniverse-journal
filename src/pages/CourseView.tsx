@@ -9,6 +9,7 @@ import VideoPlayer from "@/components/course/VideoPlayer";
 import LessonList from "@/components/course/LessonList";
 import SupportMaterials from "@/components/course/SupportMaterials";
 import { useCourseData } from "@/hooks/useCourseData";
+import { LessonInteractions } from "@/components/course/lesson-interactions/LessonInteractions";
 
 const CourseView = () => {
   const { courseId } = useParams();
@@ -134,6 +135,7 @@ const CourseView = () => {
                 <h2 className="text-xl font-bold text-white mb-4">{currentLesson.title}</h2>
                 <p className="text-white/80">{currentLesson.description}</p>
               </div>
+              <LessonInteractions lessonId={currentLesson.id} />
               <div className="bg-[#272727] rounded-lg p-5">
                 <SupportMaterials lessonId={currentLesson.id} />
               </div>
