@@ -12,28 +12,46 @@ export const useCourseData = (courseId: string | undefined) => {
     queryFn: async () => {
       if (!courseId) throw new Error("Course ID is required");
       
-      const { data, error } = await supabase
+      // Get course data with lessons
+      const { data: courseData, error: courseError } = await supabase
         .from("courses")
         .select(`
           *,
-          lessons(
-            *,
-            user_progress(completed_at)
-          )
+          lessons(*)
         `)
         .eq("id", courseId)
         .single();
 
-      if (error) {
-        console.error("Error fetching course:", error);
-        throw error;
+      if (courseError) {
+        console.error("Error fetching course:", courseError);
+        throw courseError;
       }
       
-      if (!data) {
+      if (!courseData) {
         throw new Error("Course not found");
       }
-      
-      return data;
+
+      // Get user progress for all lessons in this course
+      const { data: userProgress, error: progressError } = await supabase
+        .from("user_progress")
+        .select("*")
+        .eq("course_id", courseId);
+
+      if (progressError) {
+        console.error("Error fetching user progress:", progressError);
+        throw progressError;
+      }
+
+      // Attach progress data to each lesson
+      const lessonsWithProgress = courseData.lessons?.map(lesson => ({
+        ...lesson,
+        user_progress: userProgress.filter(progress => progress.lesson_id === lesson.id)
+      }));
+
+      return {
+        ...courseData,
+        lessons: lessonsWithProgress
+      };
     },
     retry: 1,
     meta: {
