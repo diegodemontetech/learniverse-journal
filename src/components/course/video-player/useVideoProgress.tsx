@@ -29,13 +29,11 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
   }, [lessonId]);
 
   const updateProgress = async (newProgress: number) => {
-    setProgress(newProgress);
-    onProgressChange(newProgress);
-
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) return;
 
+      // First check if a progress record already exists
       const { data: existingProgress } = await supabase
         .from("user_progress")
         .select("id")
@@ -44,6 +42,7 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
         .maybeSingle();
 
       if (existingProgress) {
+        // Update existing record
         const { error } = await supabase
           .from("user_progress")
           .update({
@@ -54,6 +53,7 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
 
         if (error) throw error;
       } else {
+        // Insert new record
         const { error } = await supabase
           .from("user_progress")
           .insert({
@@ -65,6 +65,9 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
 
         if (error) throw error;
       }
+
+      setProgress(newProgress);
+      onProgressChange(newProgress);
     } catch (error) {
       console.error("Erro ao atualizar progresso:", error);
     }
