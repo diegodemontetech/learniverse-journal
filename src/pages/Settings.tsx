@@ -61,12 +61,12 @@ const Settings = () => {
   }, [navigate, toast]);
 
   return (
-    <div className="p-8 bg-i2know-body min-h-screen">
+    <div className="p-8 bg-i2know-body min-h-screen relative z-0">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-white mb-8">Configurações</h1>
         
         <Tabs defaultValue="user-groups" className="space-y-6">
-          <TabsList className="bg-i2know-card">
+          <TabsList className="bg-i2know-card border-none">
             <TabsTrigger value="user-groups">Grupos de Usuários</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="courses">Cursos</TabsTrigger>
@@ -78,41 +78,43 @@ const Settings = () => {
             <TabsTrigger value="immersion">Imersão</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="user-groups">
-            <UserGroupsTab />
-          </TabsContent>
-          
-          <TabsContent value="users">
-            <UsersTab />
-          </TabsContent>
-          
-          <TabsContent value="courses">
-            <CoursesTab />
-          </TabsContent>
-          
-          <TabsContent value="lessons">
-            <LessonsTab />
-          </TabsContent>
-          
-          <TabsContent value="quizzes">
-            <QuizzesTab />
-          </TabsContent>
-          
-          <TabsContent value="featured">
-            <FeaturedTab />
-          </TabsContent>
-          
-          <TabsContent value="news">
-            <NewsTab />
-          </TabsContent>
-          
-          <TabsContent value="certificates">
-            <CertificatesTab />
-          </TabsContent>
+          <div className="relative z-10">
+            <TabsContent value="user-groups">
+              <UserGroupsTab />
+            </TabsContent>
+            
+            <TabsContent value="users">
+              <UsersTab />
+            </TabsContent>
+            
+            <TabsContent value="courses">
+              <CoursesTab />
+            </TabsContent>
+            
+            <TabsContent value="lessons">
+              <LessonsTab />
+            </TabsContent>
+            
+            <TabsContent value="quizzes">
+              <QuizzesTab />
+            </TabsContent>
+            
+            <TabsContent value="featured">
+              <FeaturedTab />
+            </TabsContent>
+            
+            <TabsContent value="news">
+              <NewsTab />
+            </TabsContent>
+            
+            <TabsContent value="certificates">
+              <CertificatesTab />
+            </TabsContent>
 
-          <TabsContent value="immersion">
-            <ImmersionTab />
-          </TabsContent>
+            <TabsContent value="immersion">
+              <ImmersionTab />
+            </TabsContent>
+          </div>
         </Tabs>
       </div>
     </div>

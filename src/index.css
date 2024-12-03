@@ -53,3 +53,27 @@
 .auth-input {
   @apply w-full bg-i2know-card border-gray-600 text-white rounded px-4 py-2 focus:ring-i2know-accent focus:border-i2know-accent;
 }
+
+/* Override Dialog styles to prevent form field issues */
+[data-radix-dialog-overlay] {
+  background: rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-radix-dialog-content] {
+  position: relative;
+  z-index: 51 !important;
+}
+
+/* Ensure form inputs are always interactive */
+input, select, textarea {
+  position: relative;
+  z-index: auto !important;
+  pointer-events: auto !important;
+  opacity: 1 !important;
+}
+
+/* Fix for dialog content */
+.dialog-content {
+  position: relative;
+  z-index: 51 !important;
+}
