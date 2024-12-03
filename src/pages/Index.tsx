@@ -3,6 +3,8 @@ import Layout from '@/components/Layout';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from '@/components/ui/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { Play, Star } from 'lucide-react';
 
 interface Course {
   id: string;
@@ -11,6 +13,7 @@ interface Course {
   description: string;
   thumbnail_url: string;
   is_featured: boolean;
+  duration?: number;
 }
 
 const fetchFeaturedCourse = async () => {
@@ -18,10 +21,10 @@ const fetchFeaturedCourse = async () => {
     .from('courses')
     .select('*')
     .eq('is_featured', true)
-    .limit(1);  // Changed from .single() to .limit(1)
+    .limit(1);
 
   if (error) throw error;
-  return data?.[0] || null;  // Return first course or null if none exists
+  return data?.[0] || null;
 };
 
 const fetchLatestCourses = async () => {
@@ -36,20 +39,28 @@ const fetchLatestCourses = async () => {
 };
 
 const FeaturedCourse = ({ course }: { course: Course }) => (
-  <div className="relative h-[70vh] w-full rounded-xl overflow-hidden mb-12">
+  <div className="relative h-[80vh] w-full overflow-hidden rounded-2xl mb-12">
+    <div className="absolute inset-0 bg-gradient-to-r from-black via-black/50 to-transparent z-10" />
     <img
       src={course.thumbnail_url || "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"}
       alt={course.title}
-      className="w-full h-full object-cover"
+      className="absolute inset-0 w-full h-full object-cover"
     />
-    <div className="absolute inset-0 bg-gradient-to-t from-i2know-body via-transparent to-transparent" />
-    <div className="absolute bottom-0 left-0 p-8">
-      <span className="text-i2know-accent font-bold mb-2 inline-block">FEATURED COURSE</span>
-      <h1 className="text-4xl font-bold mb-4">{course.title}</h1>
-      <p className="text-i2know-text-secondary max-w-2xl mb-6">
+    <div className="relative z-20 h-full flex flex-col justify-end p-12">
+      <Badge className="w-fit mb-4 bg-i2know-accent text-white hover:bg-i2know-accent/90">LIVE</Badge>
+      <h1 className="text-7xl font-bold mb-4 max-w-2xl">{course.title}</h1>
+      <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center">
+          <Star className="w-5 h-5 text-yellow-400 mr-1" />
+          <span className="text-lg">4.8</span>
+        </div>
+        <span className="text-lg">{course.duration || 120} min</span>
+      </div>
+      <p className="text-lg text-i2know-text-secondary max-w-2xl mb-8">
         {course.description}
       </p>
-      <button className="bg-i2know-accent text-white px-6 py-3 rounded-lg hover:bg-opacity-80 transition-colors">
+      <button className="flex items-center gap-2 bg-i2know-accent text-white px-8 py-4 rounded-lg hover:bg-opacity-80 transition-colors w-fit">
+        <Play className="w-5 h-5" />
         Start Learning
       </button>
     </div>
@@ -58,15 +69,20 @@ const FeaturedCourse = ({ course }: { course: Course }) => (
 
 const CourseCard = ({ title, instructor, thumbnail_url }: Course) => (
   <div className="group cursor-pointer">
-    <div className="relative aspect-video rounded-lg overflow-hidden mb-3">
+    <div className="relative aspect-video rounded-xl overflow-hidden mb-4">
       <img
         src={thumbnail_url || "https://images.unsplash.com/photo-1461749280684-dccba630e2f6"}
         alt={title}
-        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
       />
-      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-opacity" />
+      <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-40 transition-opacity duration-300" />
+      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <button className="bg-i2know-accent text-white p-4 rounded-full hover:bg-opacity-90 transform hover:scale-110 transition-all duration-300">
+          <Play className="w-6 h-6" />
+        </button>
+      </div>
     </div>
-    <h3 className="font-bold mb-1">{title}</h3>
+    <h3 className="font-bold text-lg mb-2 group-hover:text-i2know-accent transition-colors">{title}</h3>
     <p className="text-i2know-text-secondary text-sm">{instructor}</p>
   </div>
 );
@@ -85,16 +101,19 @@ const Index = () => {
   if (isFeaturedLoading || isLatestLoading) {
     return (
       <Layout>
-        <div className="animate-pulse">
-          <div className="h-[70vh] bg-i2know-card rounded-xl mb-12" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="space-y-3">
-                <div className="aspect-video bg-i2know-card rounded-lg" />
-                <div className="h-4 bg-i2know-card rounded w-3/4" />
-                <div className="h-3 bg-i2know-card rounded w-1/2" />
-              </div>
-            ))}
+        <div className="animate-pulse space-y-8">
+          <div className="h-[80vh] bg-i2know-card rounded-2xl" />
+          <div className="space-y-4">
+            <div className="h-8 bg-i2know-card rounded w-64" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="space-y-4">
+                  <div className="aspect-video bg-i2know-card rounded-xl" />
+                  <div className="h-4 bg-i2know-card rounded w-3/4" />
+                  <div className="h-3 bg-i2know-card rounded w-1/2" />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </Layout>
@@ -105,8 +124,15 @@ const Index = () => {
     <Layout>
       {featuredCourse && <FeaturedCourse course={featuredCourse} />}
       
-      <section>
-        <h2 className="text-2xl font-bold mb-6">Latest Courses</h2>
+      <section className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">Continue Watching</h2>
+          <select className="bg-transparent border border-gray-700 rounded-full px-4 py-2 text-sm">
+            <option value="popular">Popular</option>
+            <option value="newest">Newest</option>
+            <option value="trending">Trending</option>
+          </select>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {latestCourses?.map((course) => (
             <CourseCard key={course.id} {...course} />
