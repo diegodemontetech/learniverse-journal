@@ -54,30 +54,30 @@ const VideoUploadSection = ({ lessonId, onUploadComplete }: VideoUploadSectionPr
         const formData = new FormData();
         formData.append('file', file);
 
-        // Get the signed URL for upload
+        // First, upload the file directly
         supabase.storage
           .from('lesson_videos')
-          .createSignedUrl(fileName, 3600, {
-            upsert: true
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            contentType: file.type
           })
-          .then(({ data: signedUrlData, error: signedUrlError }) => {
+          .then(async ({ data: uploadData, error: uploadError }) => {
+            if (uploadError) {
+              reject(uploadError);
+              return;
+            }
+
+            // Then get a signed URL for the uploaded file
+            const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+              .from('lesson_videos')
+              .createSignedUrl(fileName, 3600);
+
             if (signedUrlError) {
               reject(signedUrlError);
               return;
             }
 
-            xhr.open('PUT', signedUrlData.signedUrl);
-            
-            xhr.onload = () => {
-              if (xhr.status === 200) {
-                resolve({ data: { path: fileName }, error: null });
-              } else {
-                reject(new Error(`Upload failed with status ${xhr.status}`));
-              }
-            };
-
-            xhr.onerror = () => reject(new Error('Upload failed'));
-            xhr.send(file);
+            resolve({ data: { path: fileName }, error: null });
           });
       }) as { data: { path: string } | null, error: Error | null };
 
