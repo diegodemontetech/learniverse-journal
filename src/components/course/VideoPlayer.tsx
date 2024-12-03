@@ -2,6 +2,26 @@ import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
+// Add type declaration for YouTube IFrame API
+declare global {
+  interface Window {
+    onYouTubeIframeAPIReady: () => void;
+    YT: {
+      Player: new (
+        iframe: HTMLIFrameElement | string,
+        options: {
+          events: {
+            onStateChange: (event: { data: number }) => void;
+          };
+        }
+      ) => void;
+      PlayerState: {
+        PLAYING: number;
+      };
+    };
+  }
+}
+
 interface VideoPlayerProps {
   lesson: {
     id: string;
@@ -61,10 +81,10 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
     firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
 
     window.onYouTubeIframeAPIReady = () => {
-      player = new (window as any).YT.Player(playerRef.current, {
+      player = new window.YT.Player(playerRef.current, {
         events: {
-          onStateChange: (event: any) => {
-            setIsPlaying(event.data === (window as any).YT.PlayerState.PLAYING);
+          onStateChange: (event) => {
+            setIsPlaying(event.data === window.YT.PlayerState.PLAYING);
           }
         }
       });
