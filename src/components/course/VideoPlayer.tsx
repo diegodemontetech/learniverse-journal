@@ -12,12 +12,44 @@ interface VideoPlayerProps {
 }
 
 const VideoPlayer = ({ lesson, onComplete }: VideoPlayerProps) => {
+  // Function to get proper YouTube embed URL
+  const getEmbedUrl = (url: string) => {
+    if (!url) return '';
+    
+    // Handle different YouTube URL formats
+    let videoId = '';
+    
+    // Handle youtube.com/watch?v= format
+    const watchUrlMatch = url.match(/(?:youtube\.com\/watch\?v=)([^&]+)/);
+    if (watchUrlMatch) {
+      videoId = watchUrlMatch[1];
+    }
+    
+    // Handle youtu.be/ format
+    const shortUrlMatch = url.match(/(?:youtu\.be\/)([^?]+)/);
+    if (shortUrlMatch) {
+      videoId = shortUrlMatch[1];
+    }
+    
+    // If we found a video ID, return the embed URL
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+    
+    // If the URL is already an embed URL, return it as is
+    if (url.includes('youtube.com/embed/')) {
+      return url;
+    }
+    
+    return '';
+  };
+
   return (
     <div className="bg-[#161616] rounded-lg overflow-hidden">
       <div className="aspect-video bg-black relative">
         {lesson?.youtube_url ? (
           <iframe
-            src={lesson.youtube_url}
+            src={getEmbedUrl(lesson.youtube_url)}
             className="w-full h-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
