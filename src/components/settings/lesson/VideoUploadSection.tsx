@@ -40,7 +40,7 @@ const VideoUploadSection = ({ lessonId, onUploadComplete }: VideoUploadSectionPr
         throw new Error("Usuário não autenticado");
       }
 
-      // Upload the file with progress tracking using XMLHttpRequest
+      // Upload the file with progress tracking
       const { data, error } = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         
@@ -51,22 +51,22 @@ const VideoUploadSection = ({ lessonId, onUploadComplete }: VideoUploadSectionPr
           }
         });
 
-        // Create a FormData object to send the file
         const formData = new FormData();
         formData.append('file', file);
 
-        // Get the upload URL from Supabase
+        // Get the signed URL for upload
         supabase.storage
           .from('lesson_videos')
-          .getUploadUrl(fileName)
-          .then(({ data: { url }, error: urlError }) => {
-            if (urlError) {
-              reject(urlError);
+          .createSignedUrl(fileName, 3600, {
+            upsert: true
+          })
+          .then(({ data: signedUrlData, error: signedUrlError }) => {
+            if (signedUrlError) {
+              reject(signedUrlError);
               return;
             }
 
-            xhr.open('POST', url);
-            xhr.setRequestHeader('Authorization', `Bearer ${supabase.auth.session()?.access_token}`);
+            xhr.open('PUT', signedUrlData.signedUrl);
             
             xhr.onload = () => {
               if (xhr.status === 200) {
@@ -77,9 +77,9 @@ const VideoUploadSection = ({ lessonId, onUploadComplete }: VideoUploadSectionPr
             };
 
             xhr.onerror = () => reject(new Error('Upload failed'));
-            xhr.send(formData);
+            xhr.send(file);
           });
-      });
+      }) as { data: { path: string } | null, error: Error | null };
 
       if (error) throw error;
 

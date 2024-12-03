@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -17,6 +17,40 @@ const LessonsTab = () => {
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editingLesson, setEditingLesson] = useState<any>(null);
+
+  // Store the selected course in localStorage
+  useEffect(() => {
+    if (selectedCourse) {
+      localStorage.setItem('selectedCourse', selectedCourse);
+    }
+  }, [selectedCourse]);
+
+  // Restore selected course from localStorage
+  useEffect(() => {
+    const storedCourse = localStorage.getItem('selectedCourse');
+    if (storedCourse) {
+      setSelectedCourse(storedCourse);
+    }
+  }, []);
+
+  // Store editing state in localStorage
+  useEffect(() => {
+    if (isEditing && editingLesson) {
+      localStorage.setItem('editingLesson', JSON.stringify(editingLesson));
+    } else {
+      localStorage.removeItem('editingLesson');
+    }
+  }, [isEditing, editingLesson]);
+
+  // Restore editing state from localStorage
+  useEffect(() => {
+    const storedLesson = localStorage.getItem('editingLesson');
+    if (storedLesson) {
+      const lesson = JSON.parse(storedLesson);
+      setIsEditing(true);
+      setEditingLesson(lesson);
+    }
+  }, []);
 
   const { data: courses } = useQuery({
     queryKey: ["courses"],
@@ -88,6 +122,7 @@ const LessonsTab = () => {
 
       setIsEditing(false);
       setEditingLesson(null);
+      localStorage.removeItem('editingLesson');
       refetchLessons();
     } catch (error: any) {
       toast({
@@ -155,6 +190,7 @@ const LessonsTab = () => {
             onCancel={() => {
               setIsEditing(false);
               setEditingLesson(null);
+              localStorage.removeItem('editingLesson');
             }}
           />
 
