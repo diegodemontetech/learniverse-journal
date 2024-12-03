@@ -1,18 +1,9 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Progress } from "@/components/ui/progress";
-import { FileUp } from "lucide-react";
+import FileUploadField from "./form/FileUploadField";
+import FormFields from "./form/FormFields";
 
 interface EbookFormProps {
   initialData?: any;
@@ -107,122 +98,29 @@ const EbookForm = ({ initialData, onSubmit, onCancel }: EbookFormProps) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Título</label>
-          <Input
-            value={formData.title}
-            onChange={(e) =>
-              setFormData({ ...formData, title: e.target.value })
-            }
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Autor</label>
-          <Input
-            value={formData.author}
-            onChange={(e) =>
-              setFormData({ ...formData, author: e.target.value })
-            }
-            required
-          />
-        </div>
-        <div className="space-y-2 col-span-2">
-          <label className="text-sm font-medium">Sinopse</label>
-          <Textarea
-            value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Categoria</label>
-          <Select
-            value={formData.category_id}
-            onValueChange={(value) =>
-              setFormData({ ...formData, category_id: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione uma categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              {/* Categories will be passed as prop */}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Quantidade de Páginas</label>
-          <Input
-            type="number"
-            value={formData.total_pages}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                total_pages: parseInt(e.target.value),
-              })
-            }
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Thumbnail</label>
-          <div className="flex items-center gap-2">
-            <Input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleFileUpload(e, 'thumbnail')}
-              className="hidden"
-              id="thumbnail-upload"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => document.getElementById('thumbnail-upload')?.click()}
-              className="w-full"
-            >
-              <FileUp className="w-4 h-4 mr-2" />
-              Upload Thumbnail
-            </Button>
-          </div>
-          {formData.thumbnail_url && (
-            <img 
-              src={formData.thumbnail_url} 
-              alt="Thumbnail preview" 
-              className="mt-2 h-20 object-cover rounded"
-            />
-          )}
-        </div>
-        <div className="space-y-2">
-          <label className="text-sm font-medium">PDF</label>
-          <div className="flex items-center gap-2">
-            <Input
-              type="file"
-              accept=".pdf"
-              onChange={(e) => handleFileUpload(e, 'pdf')}
-              className="hidden"
-              id="pdf-upload"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => document.getElementById('pdf-upload')?.click()}
-              className="w-full"
-            >
-              <FileUp className="w-4 h-4 mr-2" />
-              Upload PDF
-            </Button>
-          </div>
-          {isUploading && (
-            <div className="space-y-2">
-              <Progress value={uploadProgress} className="h-2" />
-              <p className="text-sm text-gray-400 text-center">{uploadProgress}%</p>
-            </div>
-          )}
-        </div>
+        <FormFields formData={formData} setFormData={setFormData} />
+        
+        <FileUploadField
+          id="thumbnail-upload"
+          label="Thumbnail"
+          accept="image/*"
+          previewUrl={formData.thumbnail_url}
+          isUploading={isUploading}
+          uploadProgress={uploadProgress}
+          onFileSelect={(e) => handleFileUpload(e, 'thumbnail')}
+        />
+        
+        <FileUploadField
+          id="pdf-upload"
+          label="PDF"
+          accept=".pdf"
+          previewUrl={formData.pdf_url}
+          isUploading={isUploading}
+          uploadProgress={uploadProgress}
+          onFileSelect={(e) => handleFileUpload(e, 'pdf')}
+        />
       </div>
+      
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
