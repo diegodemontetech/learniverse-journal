@@ -9,7 +9,7 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="min-h-screen bg-i2know-body">
       <Sidebar />
-      <main className="ml-20 p-4 relative z-0">
+      <main className="ml-sidebar p-4 relative z-0">
         {children}
       </main>
     </div>

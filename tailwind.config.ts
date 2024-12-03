@@ -63,6 +63,9 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
       },
+      spacing: {
+        'sidebar': '4rem', // Reduzido em 20% do tamanho original de 5rem
+      },
       fontFamily: {
         gotham: ["Gotham", "sans-serif"],
       },
