@@ -1,44 +1,18 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Pencil, Trash2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-
-const formSchema = z.object({
-  question: z.string().min(3, "A pergunta deve ter pelo menos 3 caracteres"),
-  correctAnswer: z.string().min(1, "A resposta correta é obrigatória"),
-  options: z.string().min(1, "As opções são obrigatórias"),
-  orderNumber: z.coerce.number().min(1, "A ordem deve ser maior que 0"),
-  points: z.coerce.number().min(1, "A pontuação deve ser maior que 0"),
-});
+import QuestionForm from "./QuestionForm";
+import QuestionList from "./QuestionList";
 
 interface QuizQuestionsProps {
   quizId: string;
@@ -49,21 +23,9 @@ const QuizQuestions = ({ quizId }: QuizQuestionsProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState<any>(null);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      question: "",
-      correctAnswer: "",
-      options: "",
-      orderNumber: 1,
-      points: 10,
-    },
-  });
-
   const { data: questions, refetch: refetchQuestions } = useQuery({
     queryKey: ["quiz-questions", quizId],
     queryFn: async () => {
-      // Só faz a query se houver um quizId
       if (!quizId) return [];
       
       const { data, error } = await supabase
@@ -75,15 +37,15 @@ const QuizQuestions = ({ quizId }: QuizQuestionsProps) => {
       if (error) throw error;
       return data;
     },
-    enabled: !!quizId, // Só executa a query se houver um quizId
+    enabled: !!quizId,
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: any) => {
     try {
       const options = values.options
         .split(",")
-        .map((option) => option.trim())
-        .filter((option) => option !== "");
+        .map((option: string) => option.trim())
+        .filter((option: string) => option !== "");
 
       if (options.length < 2) {
         toast({
@@ -139,7 +101,6 @@ const QuizQuestions = ({ quizId }: QuizQuestionsProps) => {
         });
       }
 
-      form.reset();
       setSelectedQuestion(null);
       setIsDialogOpen(false);
       refetchQuestions();
@@ -154,13 +115,6 @@ const QuizQuestions = ({ quizId }: QuizQuestionsProps) => {
 
   const handleEdit = (question: any) => {
     setSelectedQuestion(question);
-    form.reset({
-      question: question.question,
-      correctAnswer: question.correct_answer,
-      options: question.options.join(", "),
-      orderNumber: question.order_number,
-      points: question.points,
-    });
     setIsDialogOpen(true);
   };
 
@@ -202,13 +156,6 @@ const QuizQuestions = ({ quizId }: QuizQuestionsProps) => {
             <Button
               onClick={() => {
                 setSelectedQuestion(null);
-                form.reset({
-                  question: "",
-                  correctAnswer: "",
-                  options: "",
-                  orderNumber: (questions?.length || 0) + 1,
-                  points: 10,
-                });
               }}
             >
               Nova Questão
@@ -219,151 +166,34 @@ const QuizQuestions = ({ quizId }: QuizQuestionsProps) => {
               <DialogTitle>
                 {selectedQuestion ? "Editar Questão" : "Nova Questão"}
               </DialogTitle>
+              <DialogDescription>
+                Preencha os campos abaixo para {selectedQuestion ? "editar a" : "criar uma nova"} questão.
+              </DialogDescription>
             </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="question"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Pergunta</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Digite a pergunta"
-                          {...field}
-                          className="bg-[#2C2C2C] border-none"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="options"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Opções (separadas por vírgula)</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Opção 1, Opção 2, Opção 3..."
-                          {...field}
-                          className="bg-[#2C2C2C] border-none"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="correctAnswer"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Resposta Correta</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Digite a resposta correta"
-                          {...field}
-                          className="bg-[#2C2C2C] border-none"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="orderNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Ordem</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min={1} 
-                            {...field}
-                            className="bg-[#2C2C2C] border-none"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="points"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Pontos</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min={1} 
-                            {...field}
-                            className="bg-[#2C2C2C] border-none"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <Button type="submit" className="w-full">
-                  {selectedQuestion ? "Atualizar" : "Criar"}
-                </Button>
-              </form>
-            </Form>
+            <QuestionForm
+              onSubmit={onSubmit}
+              defaultValues={
+                selectedQuestion
+                  ? {
+                      question: selectedQuestion.question,
+                      correctAnswer: selectedQuestion.correct_answer,
+                      options: selectedQuestion.options.join(", "),
+                      orderNumber: selectedQuestion.order_number,
+                      points: selectedQuestion.points,
+                    }
+                  : undefined
+              }
+              isEdit={!!selectedQuestion}
+            />
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Ordem</TableHead>
-              <TableHead>Pergunta</TableHead>
-              <TableHead>Pontos</TableHead>
-              <TableHead className="w-[100px]">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {questions?.map((question) => (
-              <TableRow key={question.id}>
-                <TableCell>{question.order_number}</TableCell>
-                <TableCell>{question.question}</TableCell>
-                <TableCell>{question.points}</TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleEdit(question)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => handleDelete(question.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <QuestionList
+        questions={questions}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
     </div>
   );
 };
