@@ -32,6 +32,8 @@ export const LessonLikes = ({ lessonId }: LessonLikesProps) => {
 
       if (userLikeData) {
         setUserLike(userLikeData.is_like);
+      } else {
+        setUserLike(null);
       }
 
       // Get total likes and dislikes
@@ -63,8 +65,8 @@ export const LessonLikes = ({ lessonId }: LessonLikesProps) => {
         return;
       }
 
+      // If clicking the same button again, remove the like/dislike
       if (userLike === isLike) {
-        // Remove like/dislike
         const { error } = await supabase
           .from('lesson_likes')
           .delete()
@@ -74,19 +76,27 @@ export const LessonLikes = ({ lessonId }: LessonLikesProps) => {
         if (error) throw error;
         setUserLike(null);
       } else {
-        // Add or update like/dislike
+        // First try to delete any existing like/dislike
+        await supabase
+          .from('lesson_likes')
+          .delete()
+          .eq('lesson_id', lessonId)
+          .eq('user_id', user.id);
+
+        // Then insert the new like/dislike
         const { error } = await supabase
           .from('lesson_likes')
-          .upsert({
+          .insert([{
             lesson_id: lessonId,
             user_id: user.id,
             is_like: isLike,
-          });
+          }]);
 
         if (error) throw error;
         setUserLike(isLike);
       }
 
+      // Reload likes to update counts
       await loadLikes();
     } catch (error: any) {
       console.error('Error updating like:', error);
