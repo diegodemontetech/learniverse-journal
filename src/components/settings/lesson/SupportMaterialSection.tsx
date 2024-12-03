@@ -18,7 +18,8 @@ const SupportMaterialSection = ({ lessonId, onUploadComplete }: SupportMaterialS
     return fileName
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '') // Remove accents
-      .replace(/[^a-zA-Z0-9.-]/g, '_'); // Replace other special chars with underscore
+      .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace other special chars with underscore
+      .replace(/\s+/g, '_'); // Replace spaces with underscore
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,12 +28,12 @@ const SupportMaterialSection = ({ lessonId, onUploadComplete }: SupportMaterialS
 
     setIsUploading(true);
     const sanitizedName = sanitizeFileName(file.name);
-    const fileName = `${lessonId}/${crypto.randomUUID()}-${sanitizedName}`;
+    const filePath = `${sanitizedName}`; // Simplified file path
     
     try {
       const { data, error } = await supabase.storage
         .from('support_materials')
-        .upload(fileName, file);
+        .upload(filePath, file);
 
       if (error) throw error;
 
@@ -42,7 +43,7 @@ const SupportMaterialSection = ({ lessonId, onUploadComplete }: SupportMaterialS
           .insert({
             lesson_id: lessonId,
             title: file.name, // Keep original name for display
-            file_path: data.path,
+            file_path: filePath,
             file_type: file.type,
             file_size: file.size,
           });
