@@ -34,29 +34,29 @@ const VideoUploadSection = ({ lessonId, onUploadComplete }: VideoUploadSectionPr
     const fileName = `${lessonId}/${crypto.randomUUID()}`;
     
     try {
+      // Check if user is authenticated
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+      if (!user) {
+        throw new Error("Usuário não autenticado");
+      }
 
-      // Create a custom upload handler to track progress
-      const xhr = new XMLHttpRequest();
-      xhr.upload.addEventListener('progress', (event) => {
-        if (event.lengthComputable) {
-          const percent = (event.loaded / event.total) * 100;
-          setUploadProgress(Math.round(percent));
-        }
-      });
-
+      // Upload the file with progress tracking
       const { data, error } = await supabase.storage
         .from('lesson_videos')
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          onUploadProgress: (progress) => {
+            const percent = (progress.loaded / progress.total) * 100;
+            setUploadProgress(Math.round(percent));
+          }
         });
 
       if (error) throw error;
 
       if (data) {
-        await supabase
+        // Update lesson with video information
+        const { error: updateError } = await supabase
           .from('lessons')
           .update({
             video_file_path: data.path,
@@ -64,6 +64,8 @@ const VideoUploadSection = ({ lessonId, onUploadComplete }: VideoUploadSectionPr
             video_file_size: file.size,
           })
           .eq('id', lessonId);
+
+        if (updateError) throw updateError;
 
         onUploadComplete(data.path);
         
@@ -76,7 +78,7 @@ const VideoUploadSection = ({ lessonId, onUploadComplete }: VideoUploadSectionPr
       console.error("Erro no upload:", error);
       toast({
         title: "Erro",
-        description: "Erro ao enviar o vídeo. Tente novamente.",
+        description: error.message || "Erro ao enviar o vídeo. Tente novamente.",
         variant: "destructive",
       });
     } finally {
