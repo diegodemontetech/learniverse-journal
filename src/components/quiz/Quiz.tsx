@@ -61,13 +61,17 @@ const Quiz = ({ quizId, onComplete }: QuizProps) => {
   };
 
   const calculateScore = () => {
-    let score = 0;
+    let totalPoints = 0;
+    let earnedPoints = 0;
+    
     questions.forEach(question => {
+      totalPoints += question.points;
       if (selectedAnswers[question.id] === question.correct_answer) {
-        score += question.points || 0;
+        earnedPoints += question.points;
       }
     });
-    return score;
+    
+    return (earnedPoints / totalPoints) * 100;
   };
 
   const handleSubmit = async () => {
@@ -82,8 +86,6 @@ const Quiz = ({ quizId, onComplete }: QuizProps) => {
 
     setIsSubmitting(true);
     const score = calculateScore();
-    const maxScore = questions.reduce((acc, q) => acc + (q.points || 0), 0);
-    const percentageScore = (score / maxScore) * 100;
 
     try {
       const { error } = await supabase
@@ -91,14 +93,15 @@ const Quiz = ({ quizId, onComplete }: QuizProps) => {
         .insert({
           quiz_id: quizId,
           user_id: (await supabase.auth.getUser()).data.user?.id,
-          score: percentageScore,
-          points_earned: score,
+          score: score,
+          completed_at: new Date().toISOString(),
         });
 
       if (error) throw error;
 
-      setQuizScore(percentageScore);
+      setQuizScore(score);
       setShowResult(true);
+      onComplete();
     } catch (error) {
       toast({
         title: "Erro",

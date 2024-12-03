@@ -8,7 +8,10 @@ import * as z from "zod";
 const formSchema = z.object({
   question: z.string().min(3, "A pergunta deve ter pelo menos 3 caracteres"),
   correctAnswer: z.string().min(1, "A resposta correta é obrigatória"),
-  options: z.string().min(1, "As opções são obrigatórias"),
+  option1: z.string().min(1, "A opção 1 é obrigatória"),
+  option2: z.string().min(1, "A opção 2 é obrigatória"),
+  option3: z.string().min(1, "A opção 3 é obrigatória"),
+  option4: z.string().min(1, "A opção 4 é obrigatória"),
   orderNumber: z.coerce.number().min(1, "A ordem deve ser maior que 0"),
   points: z.coerce.number().min(1, "A pontuação deve ser maior que 0"),
 });
@@ -25,7 +28,10 @@ const QuestionForm = ({ onSubmit, defaultValues, isEdit }: QuestionFormProps) =>
     defaultValues: defaultValues || {
       question: "",
       correctAnswer: "",
-      options: "",
+      option1: "",
+      option2: "",
+      option3: "",
+      option4: "",
       orderNumber: 1,
       points: 10,
     },
@@ -52,23 +58,79 @@ const QuestionForm = ({ onSubmit, defaultValues, isEdit }: QuestionFormProps) =>
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="options"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Opções (separadas por vírgula)</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Opção 1, Opção 2, Opção 3..."
-                  {...field}
-                  className="bg-[#2C2C2C] border-none"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="space-y-4">
+          <FormField
+            control={form.control}
+            name="option1"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Opção 1</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Digite a opção 1"
+                    {...field}
+                    className="bg-[#2C2C2C] border-none"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="option2"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Opção 2</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Digite a opção 2"
+                    {...field}
+                    className="bg-[#2C2C2C] border-none"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="option3"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Opção 3</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Digite a opção 3"
+                    {...field}
+                    className="bg-[#2C2C2C] border-none"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="option4"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Opção 4</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Digite a opção 4"
+                    {...field}
+                    className="bg-[#2C2C2C] border-none"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <FormField
           control={form.control}

@@ -34,19 +34,12 @@ const QuizQuestions = ({ quizId }: QuizQuestionsProps) => {
 
   const handleSubmit = async (values: any) => {
     try {
-      const options = values.options
-        .split(",")
-        .map((option: string) => option.trim())
-        .filter((option: string) => option !== "");
-
-      if (options.length < 2) {
-        toast({
-          title: "Erro",
-          description: "Adicione pelo menos 2 opções, separadas por vírgula",
-          variant: "destructive",
-        });
-        return;
-      }
+      const options = [
+        values.option1,
+        values.option2,
+        values.option3,
+        values.option4
+      ];
 
       if (!options.includes(values.correctAnswer)) {
         toast({
@@ -106,7 +99,14 @@ const QuizQuestions = ({ quizId }: QuizQuestionsProps) => {
   };
 
   const handleEdit = (question: any) => {
-    setSelectedQuestion(question);
+    const options = question.options as string[];
+    setSelectedQuestion({
+      ...question,
+      option1: options[0],
+      option2: options[1],
+      option3: options[2],
+      option4: options[3],
+    });
     setIsDialogOpen(true);
   };
 

@@ -815,7 +815,7 @@ export type Database = {
       }
       quizzes: {
         Row: {
-          course_id: string | null
+          course_id: string
           created_at: string
           description: string | null
           id: string
@@ -823,7 +823,7 @@ export type Database = {
           title: string
         }
         Insert: {
-          course_id?: string | null
+          course_id: string
           created_at?: string
           description?: string | null
           id?: string
@@ -831,7 +831,7 @@ export type Database = {
           title: string
         }
         Update: {
-          course_id?: string | null
+          course_id?: string
           created_at?: string
           description?: string | null
           id?: string
