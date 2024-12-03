@@ -68,17 +68,19 @@ export const LessonComments = ({ lessonId }: LessonCommentsProps) => {
             .eq('parent_id', comment.id)
             .order('created_at', { ascending: true });
 
-          const { data: userLike } = await supabase
+          // Changed this part to handle no likes found
+          const { data: userLikes } = await supabase
             .from('comment_likes')
             .select('is_like')
             .eq('comment_id', comment.id)
-            .eq('user_id', user.id)
-            .single();
+            .eq('user_id', user.id);
+
+          const userLike = userLikes && userLikes.length > 0 ? userLikes[0].is_like : null;
 
           return {
             ...comment,
             replies: replies || [],
-            user_like: userLike?.is_like,
+            user_like: userLike,
           };
         })
       );
