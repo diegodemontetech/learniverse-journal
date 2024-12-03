@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { Play, Pause, Volume2, VolumeX } from "lucide-react";
+import VideoControls from "./video-player/VideoControls";
+import CompletionBadge from "./video-player/CompletionBadge";
+import { useVideoProgress } from "./video-player/useVideoProgress";
 
 interface VideoPlayerProps {
   lesson: {
@@ -17,11 +17,10 @@ interface VideoPlayerProps {
 
 const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [progress, setProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const progressInterval = useRef<number>();
+  const { progress, updateProgress } = useVideoProgress(lesson.id, onProgressChange);
 
   useEffect(() => {
     const loadVideo = async () => {
@@ -38,33 +37,12 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
         }
 
         setVideoUrl(signedUrl);
-
-        // Tentar obter progresso existente
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user?.id) return;
-
-        const { data: progressData, error: progressError } = await supabase
-          .from("user_progress")
-          .select("*")
-          .eq("lesson_id", lesson.id)
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        if (!progressError && progressData) {
-          setProgress(progressData.progress_percentage || 0);
-        }
       } catch (error) {
         console.error("Erro ao carregar vídeo:", error);
       }
     };
 
     loadVideo();
-
-    return () => {
-      if (progressInterval.current) {
-        window.clearInterval(progressInterval.current);
-      }
-    };
   }, [lesson]);
 
   const handleTimeUpdate = async () => {
@@ -74,55 +52,10 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
     const currentTime = videoRef.current.currentTime;
     const newProgress = Math.round((currentTime / duration) * 100);
     
-    setProgress(newProgress);
-    onProgressChange(newProgress);
+    await updateProgress(newProgress);
 
-    if (newProgress >= 80) {
+    if (newProgress >= 100) {
       onComplete(lesson.id);
-      if (progressInterval.current) {
-        window.clearInterval(progressInterval.current);
-      }
-    }
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.id) return;
-
-      // First check if a record exists
-      const { data: existingProgress } = await supabase
-        .from("user_progress")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("lesson_id", lesson.id)
-        .maybeSingle();
-
-      if (existingProgress) {
-        // Update existing record
-        const { error } = await supabase
-          .from("user_progress")
-          .update({
-            progress_percentage: newProgress,
-            completed_at: newProgress >= 100 ? new Date().toISOString() : null
-          })
-          .eq("id", existingProgress.id);
-
-        if (error) throw error;
-      } else {
-        // Insert new record
-        const { error } = await supabase
-          .from("user_progress")
-          .insert({
-            user_id: user.id,
-            lesson_id: lesson.id,
-            course_id: null, // You might want to pass course_id as a prop if needed
-            progress_percentage: newProgress,
-            completed_at: newProgress >= 100 ? new Date().toISOString() : null
-          });
-
-        if (error) throw error;
-      }
-    } catch (error) {
-      console.error("Erro ao atualizar progresso:", error);
     }
   };
 
@@ -145,63 +78,30 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
 
   if (!videoUrl && !lesson.youtube_url) {
     return (
-      <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
+      <div className="aspect-video bg-black flex items-center justify-center">
         <p className="text-white">Nenhum vídeo disponível</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-        <video
-          ref={videoRef}
-          src={videoUrl}
-          className="w-full h-full"
-          onTimeUpdate={handleTimeUpdate}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-        />
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={togglePlay}
-              className="text-white hover:bg-white/20"
-            >
-              {isPlaying ? (
-                <Pause className="w-6 h-6" />
-              ) : (
-                <Play className="w-6 h-6" />
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleMute}
-              className="text-white hover:bg-white/20"
-            >
-              {isMuted ? (
-                <VolumeX className="w-6 h-6" />
-              ) : (
-                <Volume2 className="w-6 h-6" />
-              )}
-            </Button>
-            <Progress value={progress} className="flex-1" />
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onComplete(lesson.id)}
-          disabled={progress < 80}
-        >
-          Marcar como Concluído
-        </Button>
-      </div>
+    <div className="relative aspect-video bg-black">
+      <CompletionBadge isCompleted={progress >= 100} />
+      <video
+        ref={videoRef}
+        src={videoUrl}
+        className="w-full h-full"
+        onTimeUpdate={handleTimeUpdate}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+      />
+      <VideoControls
+        isPlaying={isPlaying}
+        isMuted={isMuted}
+        progress={progress}
+        onPlayToggle={togglePlay}
+        onMuteToggle={toggleMute}
+      />
     </div>
   );
 };
