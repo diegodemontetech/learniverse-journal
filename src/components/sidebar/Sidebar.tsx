@@ -25,7 +25,13 @@ const Sidebar = () => {
         )}
 
         <SidebarNavigation />
-        <SidebarFooter />
+        
+        {/* Footer with reduced spacing on mobile */}
+        <div className={cn(
+          isMobile ? "mt-2" : "mt-auto"
+        )}>
+          <SidebarFooter />
+        </div>
       </div>
     </div>
   );
