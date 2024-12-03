@@ -22,7 +22,6 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
   const [isMuted, setIsMuted] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const { progress, updateProgress } = useVideoProgress(lesson.id, onProgressChange);
-  const [highestProgress, setHighestProgress] = useState(progress);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -48,13 +47,6 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
     loadVideo();
   }, [lesson]);
 
-  // Update highest progress when progress changes
-  useEffect(() => {
-    if (progress > highestProgress) {
-      setHighestProgress(progress);
-    }
-  }, [progress]);
-
   const handleTimeUpdate = async () => {
     if (!videoRef.current) return;
 
@@ -62,23 +54,15 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
     const currentTime = videoRef.current.currentTime;
     const newProgress = Math.round((currentTime / duration) * 100);
     
-    // Only update if it's higher than previous progress
-    if (newProgress > highestProgress) {
-      await updateProgress(newProgress);
-      setHighestProgress(newProgress);
+    // Update progress more frequently and with less restrictions
+    await updateProgress(newProgress);
 
-      // Only mark as complete if progress is >= 80%
-      if (newProgress >= 80 && !progress) {
-        onComplete(lesson.id);
-      }
-    }
-
-    // Show warning if trying to mark complete with insufficient progress
-    if (currentTime === duration && highestProgress < 80) {
+    // Mark as complete when reaching 50% of the video
+    if (newProgress >= 50 && !progress) {
+      onComplete(lesson.id);
       toast({
-        title: "Atenção",
-        description: "Por favor, assista pelo menos 80% do vídeo para marcá-lo como concluído.",
-        variant: "destructive",
+        title: "Aula concluída!",
+        description: "Você ganhou +10 pontos",
       });
     }
   };
@@ -114,7 +98,7 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
 
   return (
     <div className="relative aspect-video bg-black">
-      <CompletionBadge isCompleted={highestProgress >= 80} />
+      <CompletionBadge isCompleted={progress >= 50} />
       <video
         ref={videoRef}
         src={videoUrl}
