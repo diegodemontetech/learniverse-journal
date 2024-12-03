@@ -1,30 +1,32 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import VideoUpload from "./VideoUpload";
 
 interface LessonFormProps {
   isEditing: boolean;
+  lessonId: string | null;
   title: string;
   description: string;
-  youtubeUrl: string;
   duration: string;
   orderNumber: string;
   onSubmit: (e: React.FormEvent) => void;
   onChange: (field: string, value: string) => void;
   onCancel?: () => void;
+  onUploadComplete: () => void;
 }
 
 const LessonForm = ({
   isEditing,
+  lessonId,
   title,
   description,
-  youtubeUrl,
   duration,
   orderNumber,
   onSubmit,
   onChange,
   onCancel,
+  onUploadComplete,
 }: LessonFormProps) => {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -38,11 +40,6 @@ const LessonForm = ({
         placeholder="Descrição"
         value={description}
         onChange={(e) => onChange("description", e.target.value)}
-      />
-      <Input
-        placeholder="URL do YouTube"
-        value={youtubeUrl}
-        onChange={(e) => onChange("youtubeUrl", e.target.value)}
       />
       <div className="grid grid-cols-2 gap-4">
         <Input
@@ -60,6 +57,14 @@ const LessonForm = ({
           required
         />
       </div>
+      
+      {isEditing && (
+        <VideoUpload 
+          lessonId={lessonId} 
+          onUploadComplete={onUploadComplete}
+        />
+      )}
+
       <div className="flex gap-2">
         <Button type="submit">
           {isEditing ? "Atualizar Aula" : "Criar Aula"}

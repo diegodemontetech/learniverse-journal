@@ -249,6 +249,9 @@ export type Database = {
           id: string
           order_number: number
           title: string
+          video_file_path: string | null
+          video_file_size: number | null
+          video_file_type: string | null
           youtube_url: string | null
         }
         Insert: {
@@ -259,6 +262,9 @@ export type Database = {
           id?: string
           order_number: number
           title: string
+          video_file_path?: string | null
+          video_file_size?: number | null
+          video_file_type?: string | null
           youtube_url?: string | null
         }
         Update: {
@@ -269,6 +275,9 @@ export type Database = {
           id?: string
           order_number?: number
           title?: string
+          video_file_path?: string | null
+          video_file_size?: number | null
+          video_file_type?: string | null
           youtube_url?: string | null
         }
         Relationships: [

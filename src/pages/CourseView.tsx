@@ -30,8 +30,8 @@ const CourseView = () => {
     
     if (videoProgress < 80) {
       toast({
-        title: "Watch more of the video",
-        description: "Please watch at least 80% of the video to mark it as complete.",
+        title: "Assista mais do vídeo",
+        description: "Por favor, assista pelo menos 80% do vídeo para marcá-lo como concluído.",
         variant: "destructive",
       });
       return;
@@ -53,8 +53,8 @@ const CourseView = () => {
       if (progressError) throw progressError;
 
       toast({
-        title: "Success",
-        description: "Lesson completed! +10 points",
+        title: "Sucesso",
+        description: "Aula concluída! +10 pontos",
       });
 
       // Move to next lesson if available
@@ -65,8 +65,8 @@ const CourseView = () => {
     } catch (error) {
       console.error("Error updating progress:", error);
       toast({
-        title: "Error",
-        description: "Could not update progress. Please try again.",
+        title: "Erro",
+        description: "Não foi possível atualizar o progresso. Tente novamente.",
         variant: "destructive",
       });
     }
@@ -99,9 +99,9 @@ const CourseView = () => {
   if (error || !course) {
     return (
       <div className="p-8 flex flex-col items-center justify-center">
-        <h1 className="text-2xl font-bold text-white mb-4">Course not found</h1>
+        <h1 className="text-2xl font-bold text-white mb-4">Curso não encontrado</h1>
         <Button onClick={() => navigate("/courses")}>
-          Return to Courses
+          Voltar para Cursos
         </Button>
       </div>
     );
@@ -112,32 +112,40 @@ const CourseView = () => {
   );
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
+    <div className="p-5 max-w-full mx-auto bg-[#131313]">
       <CourseHeader 
         title={course.title}
         description={course.description || ""}
         progress={calculateProgress()}
       />
       
-      <div className="grid grid-cols-3 gap-8">
-        <div className="col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+        <div className="lg:col-span-3 space-y-5">
           {currentLesson ? (
             <>
-              <VideoPlayer
-                lesson={currentLesson}
-                onComplete={handleLessonComplete}
-                onProgressChange={setVideoProgress}
-              />
-              <SupportMaterials />
+              <div className="bg-[#272727] rounded-lg p-5">
+                <VideoPlayer
+                  lesson={currentLesson}
+                  onComplete={handleLessonComplete}
+                  onProgressChange={setVideoProgress}
+                />
+              </div>
+              <div className="bg-[#272727] rounded-lg p-5">
+                <h2 className="text-xl font-bold text-white mb-4">{currentLesson.title}</h2>
+                <p className="text-white/80">{currentLesson.description}</p>
+              </div>
+              <div className="bg-[#272727] rounded-lg p-5">
+                <SupportMaterials lessonId={currentLesson.id} />
+              </div>
             </>
           ) : (
-            <div className="bg-[#161616] rounded-lg p-6 text-center">
-              <p className="text-white">No lesson selected</p>
+            <div className="bg-[#272727] rounded-lg p-6 text-center">
+              <p className="text-white">Nenhuma aula selecionada</p>
             </div>
           )}
         </div>
         
-        <div className="space-y-6">
+        <div className="bg-[#272727] rounded-lg p-5">
           <LessonList
             lessons={course.lessons || []}
             currentLessonId={currentLessonId}

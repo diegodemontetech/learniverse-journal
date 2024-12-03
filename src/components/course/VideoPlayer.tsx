@@ -2,31 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-
-// Add type declaration for YouTube IFrame API
-declare global {
-  interface Window {
-    onYouTubeIframeAPIReady: () => void;
-    YT: {
-      Player: new (
-        iframe: HTMLIFrameElement | string,
-        options: {
-          videoId?: string;
-          events: {
-            onStateChange: (event: { data: number }) => void;
-          };
-        }
-      ) => void;
-      PlayerState: {
-        PLAYING: number;
-      };
-    };
-  }
-}
+import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 
 interface VideoPlayerProps {
   lesson: {
     id: string;
+    video_file_path: string | null;
     youtube_url: string | null;
     title: string;
   };
@@ -35,114 +16,107 @@ interface VideoPlayerProps {
 }
 
 const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps) => {
-  const playerContainerId = 'youtube-player-container';
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [progress, setProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const progressInterval = useRef<number>();
 
   useEffect(() => {
-    let player: any;
-
     const loadVideo = async () => {
-      if (!lesson.youtube_url) return;
+      if (!lesson.video_file_path) return;
 
-      // Get video ID from URL
-      const videoId = new URL(lesson.youtube_url).searchParams.get("v");
-      if (!videoId) return;
-
-      // Load YouTube API script
-      const tag = document.createElement("script");
-      tag.src = "https://www.youtube.com/iframe_api";
-      const firstScriptTag = document.getElementsByTagName("script")[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-
-      // Try to get existing progress
       try {
+        const { data: { signedUrl }, error } = await supabase.storage
+          .from("lesson_videos")
+          .createSignedUrl(lesson.video_file_path, 3600); // 1 hour expiry
+
+        if (error) throw error;
+        setVideoUrl(signedUrl);
+
+        // Try to get existing progress
         const { data: { user } } = await supabase.auth.getUser();
         if (!user?.id) return;
 
-        const { data: progressData, error } = await supabase
+        const { data: progressData, error: progressError } = await supabase
           .from("user_progress")
           .select("*")
           .eq("lesson_id", lesson.id)
           .eq("user_id", user.id)
           .maybeSingle();
 
-        if (!error && progressData) {
+        if (!progressError && progressData) {
           setProgress(progressData.progress_percentage || 0);
         }
       } catch (error) {
-        console.error("Error fetching progress:", error);
+        console.error("Error loading video:", error);
       }
-
-      window.onYouTubeIframeAPIReady = () => {
-        player = new window.YT.Player(playerContainerId, {
-          videoId,
-          events: {
-            onStateChange: (event) => {
-              setIsPlaying(event.data === window.YT.PlayerState.PLAYING);
-            }
-          }
-        });
-      };
     };
 
     loadVideo();
 
     return () => {
-      if (player) {
-        player.destroy();
-      }
       if (progressInterval.current) {
         window.clearInterval(progressInterval.current);
       }
     };
   }, [lesson]);
 
-  useEffect(() => {
-    if (isPlaying) {
-      progressInterval.current = window.setInterval(async () => {
-        const newProgress = Math.min(progress + 1, 100);
-        setProgress(newProgress);
-        onProgressChange(newProgress);
+  const handleTimeUpdate = async () => {
+    if (!videoRef.current) return;
 
-        if (newProgress >= 80) {
-          onComplete(lesson.id);
-          if (progressInterval.current) {
-            window.clearInterval(progressInterval.current);
-          }
-        }
+    const duration = videoRef.current.duration;
+    const currentTime = videoRef.current.currentTime;
+    const newProgress = Math.round((currentTime / duration) * 100);
+    
+    setProgress(newProgress);
+    onProgressChange(newProgress);
 
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user?.id) return;
-
-          const { error } = await supabase
-            .from("user_progress")
-            .upsert({
-              user_id: user.id,
-              lesson_id: lesson.id,
-              progress_percentage: newProgress,
-              completed_at: newProgress >= 100 ? new Date().toISOString() : null
-            });
-
-          if (error) throw error;
-        } catch (error) {
-          console.error("Error updating progress:", error);
-        }
-      }, 1000);
-    } else if (progressInterval.current) {
-      window.clearInterval(progressInterval.current);
-    }
-
-    return () => {
+    if (newProgress >= 80) {
+      onComplete(lesson.id);
       if (progressInterval.current) {
         window.clearInterval(progressInterval.current);
       }
-    };
-  }, [isPlaying, progress, lesson.id, onComplete, onProgressChange]);
+    }
 
-  if (!lesson.youtube_url) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) return;
+
+      const { error } = await supabase
+        .from("user_progress")
+        .upsert({
+          user_id: user.id,
+          lesson_id: lesson.id,
+          progress_percentage: newProgress,
+          completed_at: newProgress >= 100 ? new Date().toISOString() : null
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error updating progress:", error);
+    }
+  };
+
+  const togglePlay = () => {
+    if (!videoRef.current) return;
+    
+    if (isPlaying) {
+      videoRef.current.pause();
+    } else {
+      videoRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const toggleMute = () => {
+    if (!videoRef.current) return;
+    videoRef.current.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
+
+  if (!videoUrl) {
     return (
       <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
         <p className="text-white">No video available</p>
@@ -152,18 +126,53 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
 
   return (
     <div className="space-y-4">
-      <div className="aspect-video bg-black rounded-lg overflow-hidden">
-        <div id={playerContainerId} className="w-full h-full" />
+      <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+        <video
+          ref={videoRef}
+          src={videoUrl}
+          className="w-full h-full"
+          onTimeUpdate={handleTimeUpdate}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+        />
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={togglePlay}
+              className="text-white hover:bg-white/20"
+            >
+              {isPlaying ? (
+                <Pause className="w-6 h-6" />
+              ) : (
+                <Play className="w-6 h-6" />
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleMute}
+              className="text-white hover:bg-white/20"
+            >
+              {isMuted ? (
+                <VolumeX className="w-6 h-6" />
+              ) : (
+                <Volume2 className="w-6 h-6" />
+              )}
+            </Button>
+            <Progress value={progress} className="flex-1" />
+          </div>
+        </div>
       </div>
       <div className="flex items-center gap-4">
-        <Progress value={progress} className="flex-1" />
         <Button
           variant="outline"
           size="sm"
           onClick={() => onComplete(lesson.id)}
           disabled={progress < 80}
         >
-          Mark as Complete
+          Marcar como Concluído
         </Button>
       </div>
     </div>
