@@ -123,7 +123,7 @@ const CourseView = () => {
         <div className="lg:col-span-3 space-y-5">
           {currentLesson ? (
             <>
-              <div className="bg-[#272727] rounded-lg p-5">
+              <div>
                 <VideoPlayer
                   lesson={currentLesson}
                   onComplete={handleLessonComplete}

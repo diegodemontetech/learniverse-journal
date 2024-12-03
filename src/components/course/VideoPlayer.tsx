@@ -76,6 +76,10 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
     setIsMuted(!isMuted);
   };
 
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+  };
+
   if (!videoUrl && !lesson.youtube_url) {
     return (
       <div className="aspect-video bg-black flex items-center justify-center">
@@ -94,6 +98,7 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
         onTimeUpdate={handleTimeUpdate}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
+        onContextMenu={handleContextMenu}
       />
       <VideoControls
         isPlaying={isPlaying}
