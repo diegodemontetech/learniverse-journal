@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -7,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FormFieldsProps {
   formData: any;
@@ -14,6 +16,18 @@ interface FormFieldsProps {
 }
 
 const FormFields = ({ formData, setFormData }: FormFieldsProps) => {
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <>
       <div className="space-y-2">
@@ -58,7 +72,11 @@ const FormFields = ({ formData, setFormData }: FormFieldsProps) => {
             <SelectValue placeholder="Selecione uma categoria" />
           </SelectTrigger>
           <SelectContent>
-            {/* Categories will be passed as prop */}
+            {categories?.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                {category.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
