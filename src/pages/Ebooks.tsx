@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -9,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { Book, FileText, Star, Eye } from "lucide-react";
+import { BookOpen, FileText, Star, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type SortOption = "latest" | "rating" | "a-z";
@@ -17,17 +18,32 @@ type SortOption = "latest" | "rating" | "a-z";
 const Ebooks = () => {
   const navigate = useNavigate();
   const [sortBy, setSortBy] = useState<SortOption>("latest");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: ebooks, isLoading } = useQuery({
-    queryKey: ["ebooks", sortBy],
+    queryKey: ["ebooks", sortBy, selectedCategory],
     queryFn: async () => {
       let query = supabase
         .from("ebooks")
         .select("*, categories(name)");
 
+      if (selectedCategory !== "all") {
+        query = query.eq("category_id", selectedCategory);
+      }
+
       switch (sortBy) {
         case "rating":
-          // In a real app, you'd have a ratings column
           query = query.order("title");
           break;
         case "a-z":
@@ -83,6 +99,35 @@ const Ebooks = () => {
         </div>
       </div>
 
+      {/* Category Filters - Netflix Style */}
+      <div className="flex items-center gap-3 mb-8 overflow-x-auto pb-4">
+        <Button
+          variant={selectedCategory === 'all' ? 'default' : 'secondary'}
+          className={`rounded-full px-12 py-2.5 h-10 flex items-center justify-center whitespace-nowrap ${
+            selectedCategory === 'all' 
+              ? 'bg-red-600 hover:bg-red-700' 
+              : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
+          }`}
+          onClick={() => setSelectedCategory('all')}
+        >
+          All E-books
+        </Button>
+        {categories?.map((category) => (
+          <Button
+            key={category.id}
+            variant={selectedCategory === category.id ? 'default' : 'secondary'}
+            className={`rounded-full px-12 py-2.5 h-10 flex items-center justify-center whitespace-nowrap ${
+              selectedCategory === category.id 
+                ? 'bg-red-600 hover:bg-red-700' 
+                : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
+            }`}
+            onClick={() => setSelectedCategory(category.id)}
+          >
+            {category.name}
+          </Button>
+        ))}
+      </div>
+
       {/* Ebooks Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
         {isLoading
@@ -116,7 +161,7 @@ const Ebooks = () => {
                 </h3>
                 <div className="flex items-center justify-between text-i2know-text-secondary text-sm">
                   <div className="flex items-center gap-1">
-                    <Book className="w-3 h-3" />
+                    <BookOpen className="w-3 h-3" />
                     <span>{ebook.author}</span>
                   </div>
                   <div className="flex items-center gap-1">

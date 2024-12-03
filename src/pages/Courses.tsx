@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -9,8 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Clock, BookOpen, Star, Eye } from "lucide-react";
+import { Clock, Tv, Star, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type SortOption = "latest" | "rating" | "a-z";
@@ -18,17 +18,32 @@ type SortOption = "latest" | "rating" | "a-z";
 const Courses = () => {
   const navigate = useNavigate();
   const [sortBy, setSortBy] = useState<SortOption>("latest");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: courses, isLoading } = useQuery({
-    queryKey: ["courses", sortBy],
+    queryKey: ["courses", sortBy, selectedCategory],
     queryFn: async () => {
       let query = supabase
         .from("courses")
         .select("*, categories(name)");
 
+      if (selectedCategory !== "all") {
+        query = query.eq("category_id", selectedCategory);
+      }
+
       switch (sortBy) {
         case "rating":
-          // In a real app, you'd have a ratings column
           query = query.order("title");
           break;
         case "a-z":
@@ -84,6 +99,35 @@ const Courses = () => {
         </div>
       </div>
 
+      {/* Category Filters - Netflix Style */}
+      <div className="flex items-center gap-3 mb-8 overflow-x-auto pb-4">
+        <Button
+          variant={selectedCategory === 'all' ? 'default' : 'secondary'}
+          className={`rounded-full px-12 py-2.5 h-10 flex items-center justify-center whitespace-nowrap ${
+            selectedCategory === 'all' 
+              ? 'bg-red-600 hover:bg-red-700' 
+              : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
+          }`}
+          onClick={() => setSelectedCategory('all')}
+        >
+          All Courses
+        </Button>
+        {categories?.map((category) => (
+          <Button
+            key={category.id}
+            variant={selectedCategory === category.id ? 'default' : 'secondary'}
+            className={`rounded-full px-12 py-2.5 h-10 flex items-center justify-center whitespace-nowrap ${
+              selectedCategory === category.id 
+                ? 'bg-red-600 hover:bg-red-700' 
+                : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
+            }`}
+            onClick={() => setSelectedCategory(category.id)}
+          >
+            {category.name}
+          </Button>
+        ))}
+      </div>
+
       {/* Courses Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
         {isLoading
@@ -121,7 +165,7 @@ const Courses = () => {
                     <span>{course.duration || 0}min</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <BookOpen className="w-3 h-3" />
+                    <Tv className="w-3 h-3" />
                     <span>{course.instructor}</span>
                   </div>
                 </div>
