@@ -20,7 +20,7 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
           setProgress(progressData[0].progress_percentage || 0);
         }
       } catch (error) {
-        console.error("Erro ao carregar progresso:", error);
+        console.error("Error loading progress:", error);
       }
     };
 
@@ -32,25 +32,24 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) return;
 
-      // Primeiro tenta fazer update
-      const { data: updateData, error: updateError } = await supabase
+      const { data, error } = await supabase
         .from("user_progress")
         .upsert({
           user_id: user.id,
           lesson_id: lessonId,
           progress_percentage: newProgress,
           completed_at: newProgress >= 100 ? new Date().toISOString() : null
-        }, {
-          onConflict: 'user_id,lesson_id',
-          ignoreDuplicates: false
         });
 
-      if (!updateError) {
-        setProgress(newProgress);
-        onProgressChange(newProgress);
+      if (error) {
+        console.error("Error updating progress:", error);
+        return;
       }
+
+      setProgress(newProgress);
+      onProgressChange(newProgress);
     } catch (error) {
-      console.error("Erro ao atualizar progresso:", error);
+      console.error("Error updating progress:", error);
     }
   };
 
