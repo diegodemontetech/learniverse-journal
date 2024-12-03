@@ -21,6 +21,9 @@ const UsersTab = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState("");
+  const [selectedPosition, setSelectedPosition] = useState("");
+  const [selectedRole, setSelectedRole] = useState("user");
 
   const { data: groups } = useQuery({
     queryKey: ["user-groups"],
@@ -33,8 +36,30 @@ const UsersTab = () => {
     },
   });
 
+  const { data: departments } = useQuery({
+    queryKey: ["departments"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("departments")
+        .select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: positions } = useQuery({
+    queryKey: ["positions"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("positions")
+        .select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const handleCreateUser = async () => {
-    if (!email || !password || !firstName || !lastName || !selectedGroup) {
+    if (!email || !password || !firstName || !lastName || !selectedGroup || !selectedDepartment || !selectedPosition || !selectedRole) {
       toast({
         title: "Erro",
         description: "Todos os campos são obrigatórios",
@@ -59,6 +84,9 @@ const UsersTab = () => {
           first_name: firstName,
           last_name: lastName,
           group_id: selectedGroup,
+          department_id: selectedDepartment,
+          position_id: selectedPosition,
+          role: selectedRole,
         })
         .eq("id", authData.user?.id);
 
@@ -75,6 +103,9 @@ const UsersTab = () => {
       setEmail("");
       setPassword("");
       setSelectedGroup("");
+      setSelectedDepartment("");
+      setSelectedPosition("");
+      setSelectedRole("user");
     } catch (error) {
       toast({
         title: "Erro",
@@ -139,6 +170,44 @@ const UsersTab = () => {
         </div>
 
         <div className="space-y-2">
+          <Label>Departamento</Label>
+          <Select
+            value={selectedDepartment}
+            onValueChange={setSelectedDepartment}
+          >
+            <SelectTrigger className="bg-i2know-body border-none text-white">
+              <SelectValue placeholder="Selecione um departamento" />
+            </SelectTrigger>
+            <SelectContent>
+              {departments?.map((department) => (
+                <SelectItem key={department.id} value={department.id}>
+                  {department.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Cargo</Label>
+          <Select
+            value={selectedPosition}
+            onValueChange={setSelectedPosition}
+          >
+            <SelectTrigger className="bg-i2know-body border-none text-white">
+              <SelectValue placeholder="Selecione um cargo" />
+            </SelectTrigger>
+            <SelectContent>
+              {positions?.map((position) => (
+                <SelectItem key={position.id} value={position.id}>
+                  {position.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
           <Label>Grupo de Usuário</Label>
           <Select
             value={selectedGroup}
@@ -153,6 +222,22 @@ const UsersTab = () => {
                   {group.name}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Tipo de Usuário</Label>
+          <Select
+            value={selectedRole}
+            onValueChange={setSelectedRole}
+          >
+            <SelectTrigger className="bg-i2know-body border-none text-white">
+              <SelectValue placeholder="Selecione o tipo de usuário" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="user">Usuário</SelectItem>
+              <SelectItem value="admin">Administrador</SelectItem>
             </SelectContent>
           </Select>
         </div>
