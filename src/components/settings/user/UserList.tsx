@@ -21,16 +21,28 @@ const UserList = () => {
   const { data: users, refetch } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
+      if (authError) throw authError;
+
+      const userIds = authUsers.map(user => user.id);
+      
+      const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select(`
           *,
           departments(name),
           positions(name),
           user_groups(name)
-        `);
-      if (error) throw error;
-      return data;
+        `)
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combine auth users with profiles
+      return profiles.map(profile => ({
+        ...profile,
+        email: authUsers.find(u => u.id === profile.id)?.email
+      }));
     },
   });
 
