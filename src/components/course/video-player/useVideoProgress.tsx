@@ -10,16 +10,14 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
         const { data: { user } } = await supabase.auth.getUser();
         if (!user?.id) return;
 
-        const { data: progressData, error: progressError } = await supabase
+        const { data: progressData } = await supabase
           .from("user_progress")
           .select("*")
           .eq("lesson_id", lessonId)
-          .eq("user_id", user.id)
-          .limit(1)
-          .single();
+          .eq("user_id", user.id);
 
-        if (!progressError && progressData) {
-          setProgress(progressData.progress_percentage || 0);
+        if (progressData && progressData[0]) {
+          setProgress(progressData[0].progress_percentage || 0);
         }
       } catch (error) {
         console.error("Erro ao carregar progresso:", error);
@@ -34,42 +32,23 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) return;
 
-      // First check if a progress record already exists
-      const { data: existingProgress } = await supabase
+      // Primeiro tenta fazer update
+      const { data: updateData, error: updateError } = await supabase
         .from("user_progress")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("lesson_id", lessonId)
-        .limit(1)
-        .single();
+        .upsert({
+          user_id: user.id,
+          lesson_id: lessonId,
+          progress_percentage: newProgress,
+          completed_at: newProgress >= 100 ? new Date().toISOString() : null
+        }, {
+          onConflict: 'user_id,lesson_id',
+          ignoreDuplicates: false
+        });
 
-      if (existingProgress) {
-        // Update existing record if new progress is higher
-        const { error } = await supabase
-          .from("user_progress")
-          .update({
-            progress_percentage: newProgress,
-            completed_at: newProgress >= 50 ? new Date().toISOString() : null
-          })
-          .eq("id", existingProgress.id);
-
-        if (error) throw error;
-      } else {
-        // Insert new record
-        const { error } = await supabase
-          .from("user_progress")
-          .insert({
-            user_id: user.id,
-            lesson_id: lessonId,
-            progress_percentage: newProgress,
-            completed_at: newProgress >= 50 ? new Date().toISOString() : null
-          });
-
-        if (error) throw error;
+      if (!updateError) {
+        setProgress(newProgress);
+        onProgressChange(newProgress);
       }
-
-      setProgress(newProgress);
-      onProgressChange(newProgress);
     } catch (error) {
       console.error("Erro ao atualizar progresso:", error);
     }

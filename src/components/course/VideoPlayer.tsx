@@ -24,6 +24,7 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange, onNextLesson }: Vid
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const { progress, updateProgress } = useVideoProgress(lesson.id, onProgressChange);
   const { toast } = useToast();
+  const [hasAutoAdvanced, setHasAutoAdvanced] = useState(false);
 
   useEffect(() => {
     const loadVideo = async () => {
@@ -46,6 +47,7 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange, onNextLesson }: Vid
     };
 
     loadVideo();
+    setHasAutoAdvanced(false);
   }, [lesson]);
 
   const handleTimeUpdate = async () => {
@@ -59,16 +61,17 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange, onNextLesson }: Vid
   };
 
   const handleVideoEnd = () => {
-    // Mark lesson as complete when video ends
-    onComplete(lesson.id);
-    toast({
-      title: "Aula concluída!",
-      description: "Você ganhou +10 pontos",
-    });
+    if (!hasAutoAdvanced) {
+      onComplete(lesson.id);
+      setHasAutoAdvanced(true);
+      toast({
+        title: "Aula concluída!",
+        description: "Você ganhou +10 pontos",
+      });
 
-    // Automatically advance to next lesson
-    if (onNextLesson) {
-      onNextLesson();
+      if (onNextLesson) {
+        onNextLesson();
+      }
     }
   };
 
