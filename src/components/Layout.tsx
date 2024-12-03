@@ -12,9 +12,9 @@ const Layout = ({ children }: LayoutProps) => {
   const isHomePage = location.pathname === '/';
 
   return (
-    <div className="min-h-screen bg-i2know-body">
+    <div className="min-h-screen bg-i2know-body relative">
       <Sidebar />
-      <main className="ml-sidebar p-4 relative z-0 text-i2know-text-primary">
+      <main className="ml-sidebar p-4 relative text-i2know-text-primary">
         {children}
         {!isHomePage && <Footer />}
       </main>
