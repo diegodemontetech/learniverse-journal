@@ -33,7 +33,13 @@ const SupportMaterials = ({ lessonId }: SupportMaterialsProps) => {
 
       if (error) throw error;
 
-      window.open(data.signedUrl, "_blank");
+      // Create a temporary link to handle the download with the original filename
+      const link = document.createElement('a');
+      link.href = data.signedUrl;
+      link.download = fileName; // Use the original filename for download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (error: any) {
       toast({
         title: "Erro",
@@ -55,7 +61,7 @@ const SupportMaterials = ({ lessonId }: SupportMaterialsProps) => {
           <Button
             key={material.id}
             variant="outline"
-            className="w-full justify-start gap-2"
+            className="w-full justify-start gap-2 bg-[#272727] border-[#3a3a3a] text-white hover:bg-[#3a3a3a]"
             onClick={() => handleDownload(material.file_path, material.title)}
           >
             <FileText className="w-4 h-4" />

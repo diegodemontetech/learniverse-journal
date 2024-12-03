@@ -14,12 +14,20 @@ const SupportMaterialSection = ({ lessonId, onUploadComplete }: SupportMaterialS
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
 
+  const sanitizeFileName = (fileName: string) => {
+    return fileName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove accents
+      .replace(/[^a-zA-Z0-9.-]/g, '_'); // Replace other special chars with underscore
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
-    const fileName = `${lessonId}/${crypto.randomUUID()}-${file.name}`;
+    const sanitizedName = sanitizeFileName(file.name);
+    const fileName = `${lessonId}/${crypto.randomUUID()}-${sanitizedName}`;
     
     try {
       const { data, error } = await supabase.storage
@@ -33,7 +41,7 @@ const SupportMaterialSection = ({ lessonId, onUploadComplete }: SupportMaterialS
           .from('support_materials')
           .insert({
             lesson_id: lessonId,
-            title: file.name,
+            title: file.name, // Keep original name for display
             file_path: data.path,
             file_type: file.type,
             file_size: file.size,
@@ -78,7 +86,7 @@ const SupportMaterialSection = ({ lessonId, onUploadComplete }: SupportMaterialS
           variant="outline"
           disabled={isUploading}
           onClick={() => document.getElementById('material')?.click()}
-          className="w-full"
+          className="w-full bg-[#272727] border-[#3a3a3a] text-white hover:bg-[#3a3a3a]"
         >
           <FileUp className="w-4 h-4 mr-2" />
           {isUploading ? "Enviando..." : "Upload de Material"}
