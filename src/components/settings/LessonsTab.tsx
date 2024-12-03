@@ -18,14 +18,6 @@ const LessonsTab = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingLesson, setEditingLesson] = useState<any>(null);
 
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    youtubeUrl: "",
-    duration: "",
-    orderNumber: "",
-  });
-
   const { data: courses } = useQuery({
     queryKey: ["courses"],
     queryFn: async () => {
@@ -53,21 +45,7 @@ const LessonsTab = () => {
     enabled: !!selectedCourse,
   });
 
-  const resetForm = () => {
-    setFormData({
-      title: "",
-      description: "",
-      youtubeUrl: "",
-      duration: "",
-      orderNumber: "",
-    });
-    setIsEditing(false);
-    setEditingLesson(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = async (formData: any) => {
     if (!selectedCourse) {
       toast({
         title: "Erro",
@@ -79,11 +57,7 @@ const LessonsTab = () => {
 
     const lessonData = {
       course_id: selectedCourse,
-      title: formData.title,
-      description: formData.description,
-      youtube_url: formData.youtubeUrl,
-      duration: parseInt(formData.duration),
-      order_number: parseInt(formData.orderNumber),
+      ...formData
     };
 
     try {
@@ -112,7 +86,8 @@ const LessonsTab = () => {
         });
       }
 
-      resetForm();
+      setIsEditing(false);
+      setEditingLesson(null);
       refetchLessons();
     } catch (error: any) {
       toast({
@@ -126,13 +101,6 @@ const LessonsTab = () => {
   const handleEdit = (lesson: any) => {
     setIsEditing(true);
     setEditingLesson(lesson);
-    setFormData({
-      title: lesson.title,
-      description: lesson.description || "",
-      youtubeUrl: lesson.youtube_url || "",
-      duration: lesson.duration?.toString() || "",
-      orderNumber: lesson.order_number?.toString() || "",
-    });
   };
 
   const handleDelete = async (id: string) => {
@@ -159,10 +127,6 @@ const LessonsTab = () => {
     }
   };
 
-  const handleFormChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -170,7 +134,7 @@ const LessonsTab = () => {
           value={selectedCourse || ""}
           onValueChange={(value) => setSelectedCourse(value)}
         >
-          <SelectTrigger className="w-[300px]">
+          <SelectTrigger className="w-[300px] bg-[#272727] border-[#3a3a3a] text-white">
             <SelectValue placeholder="Selecione um curso" />
           </SelectTrigger>
           <SelectContent>
@@ -186,14 +150,12 @@ const LessonsTab = () => {
       {selectedCourse && (
         <div className="grid grid-cols-2 gap-6">
           <LessonFormSection
-            selectedCourse={selectedCourse}
-            isEditing={isEditing}
-            editingLesson={editingLesson}
-            formData={formData}
+            selectedLesson={editingLesson}
             onSubmit={handleSubmit}
-            onChange={handleFormChange}
-            onCancel={resetForm}
-            onUploadComplete={refetchLessons}
+            onCancel={() => {
+              setIsEditing(false);
+              setEditingLesson(null);
+            }}
           />
 
           <div>

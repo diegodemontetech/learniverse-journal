@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import VideoUpload from "./VideoUpload";
-import SupportMaterialUpload from "./SupportMaterialUpload";
+import VideoUploadSection from "./VideoUploadSection";
+import SupportMaterialSection from "./SupportMaterialSection";
 import SupportMaterialList from "./SupportMaterialList";
 
 interface LessonFormSectionProps {
@@ -38,7 +38,7 @@ const LessonFormSection = ({ selectedLesson, onSubmit, onCancel }: LessonFormSec
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-4">
+      <div className="space-y-4 bg-[#1f1f1f] p-4 rounded-lg">
         <div>
           <Label htmlFor="title">Título</Label>
           <Input
@@ -47,6 +47,7 @@ const LessonFormSection = ({ selectedLesson, onSubmit, onCancel }: LessonFormSec
             value={formData.title}
             onChange={handleInputChange}
             required
+            className="bg-[#272727] border-[#3a3a3a] text-white"
           />
         </div>
 
@@ -57,6 +58,7 @@ const LessonFormSection = ({ selectedLesson, onSubmit, onCancel }: LessonFormSec
             name="description"
             value={formData.description}
             onChange={handleInputChange}
+            className="bg-[#272727] border-[#3a3a3a] text-white min-h-[100px]"
           />
         </div>
 
@@ -69,6 +71,7 @@ const LessonFormSection = ({ selectedLesson, onSubmit, onCancel }: LessonFormSec
             value={formData.order_number}
             onChange={handleInputChange}
             required
+            className="bg-[#272727] border-[#3a3a3a] text-white"
           />
         </div>
 
@@ -79,31 +82,40 @@ const LessonFormSection = ({ selectedLesson, onSubmit, onCancel }: LessonFormSec
             name="youtube_url"
             value={formData.youtube_url}
             onChange={handleInputChange}
+            className="bg-[#272727] border-[#3a3a3a] text-white"
           />
         </div>
-
-        {selectedLesson?.id && (
-          <>
-            <VideoUpload
-              lessonId={selectedLesson.id}
-              onUploadComplete={handleVideoUpload}
-            />
-            
-            <SupportMaterialUpload
-              lessonId={selectedLesson.id}
-              onUploadComplete={() => {}}
-            />
-
-            <SupportMaterialList lessonId={selectedLesson.id} />
-          </>
-        )}
       </div>
 
+      {selectedLesson?.id && (
+        <>
+          <VideoUploadSection
+            lessonId={selectedLesson.id}
+            onUploadComplete={handleVideoUpload}
+          />
+          
+          <SupportMaterialSection
+            lessonId={selectedLesson.id}
+            onUploadComplete={() => {}}
+          />
+
+          <SupportMaterialList lessonId={selectedLesson.id} />
+        </>
+      )}
+
       <div className="flex justify-end gap-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onCancel}
+          className="bg-[#272727] border-[#3a3a3a] text-white hover:bg-[#3a3a3a]"
+        >
           Cancelar
         </Button>
-        <Button type="submit">
+        <Button 
+          type="submit"
+          className="bg-[#ea384c] hover:bg-[#ea384c]/90 text-white"
+        >
           {selectedLesson ? "Atualizar" : "Criar"} Aula
         </Button>
       </div>
