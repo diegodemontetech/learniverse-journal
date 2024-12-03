@@ -40,6 +40,42 @@ const CourseView = () => {
     },
   });
 
+  // Initialize user progress when accessing the course
+  useEffect(() => {
+    const initializeProgress = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !courseId) return;
+
+      const { data: existingProgress, error: fetchError } = await supabase
+        .from("user_progress")
+        .select("*")
+        .eq("course_id", courseId)
+        .eq("user_id", user.id)
+        .maybeSingle(); // Use maybeSingle instead of single
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error("Error checking progress:", fetchError);
+        return;
+      }
+
+      if (!existingProgress) {
+        const { error: insertError } = await supabase
+          .from("user_progress")
+          .insert({
+            user_id: user.id,
+            course_id: courseId,
+            progress_percentage: 0
+          });
+
+        if (insertError) {
+          console.error("Error initializing progress:", insertError);
+        }
+      }
+    };
+
+    initializeProgress();
+  }, [courseId]);
+
   useEffect(() => {
     if (course?.lessons?.[0]) {
       setCurrentLessonId(course.lessons[0].id);
