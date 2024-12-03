@@ -14,7 +14,9 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
           .from("user_progress")
           .select("*")
           .eq("lesson_id", lessonId)
-          .eq("user_id", user.id);
+          .eq("user_id", user.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
 
         if (progressData && progressData[0]) {
           setProgress(progressData[0].progress_percentage || 0);
@@ -32,9 +34,10 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) return;
 
-      const { data, error } = await supabase
+      // Insert a new progress record
+      const { error } = await supabase
         .from("user_progress")
-        .upsert({
+        .insert({
           user_id: user.id,
           lesson_id: lessonId,
           progress_percentage: newProgress,
