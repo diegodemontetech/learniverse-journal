@@ -4,7 +4,7 @@ import SidebarFooter from './SidebarFooter';
 
 const Sidebar = () => {
   return (
-    <div className="w-20 h-screen bg-[#1a1717] fixed left-0 top-0 z-40 border-r border-gray-800/30">
+    <div className="w-20 h-screen bg-i2know-sidebar fixed left-0 top-0 z-40 border-r border-i2know-accent/30">
       <div className="flex flex-col h-full">
         {/* Logo */}
         <div className="p-4 flex justify-center items-center">

@@ -20,10 +20,10 @@ export default {
     extend: {
       colors: {
         i2know: {
-          sidebar: "#231f1f",
-          body: "#2a2525", // Ajustado para um preto mais claro que o sidebar
-          accent: "#e80514",
-          card: "#333333",
+          sidebar: "#000000",
+          body: "#131313",
+          accent: "#272727",
+          card: "#3a3a3a",
           text: {
             primary: "#ffffff",
             secondary: "#b3b3b3",
@@ -64,7 +64,7 @@ export default {
         },
       },
       spacing: {
-        'sidebar': '4rem', // Reduzido em 20% do tamanho original de 5rem
+        'sidebar': '4rem',
       },
       fontFamily: {
         gotham: ["Gotham", "sans-serif"],
