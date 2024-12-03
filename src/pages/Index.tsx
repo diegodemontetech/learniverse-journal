@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Tables } from '@/integrations/supabase/types';
+import Footer from '@/components/Footer';
 
 type Category = Tables<'categories'>;
 type Course = Tables<'courses'>;
@@ -63,7 +63,7 @@ const Index = () => {
   });
 
   return (
-    <Layout>
+    <div className="min-h-screen">
       {/* Hero Section */}
       <div className="relative h-[450px] w-full overflow-hidden rounded-xl">
         {/* Background Image */}
@@ -186,7 +186,9 @@ const Index = () => {
           ))}
         </div>
       )}
-    </Layout>
+
+      <Footer />
+    </div>
   );
 };
 

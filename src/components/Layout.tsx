@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import Sidebar from './sidebar/Sidebar';
 import Footer from './Footer';
 
@@ -7,12 +8,15 @@ interface LayoutProps {
 }
 
 const Layout = ({ children }: LayoutProps) => {
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+
   return (
     <div className="min-h-screen bg-i2know-body">
       <Sidebar />
       <main className="ml-sidebar p-4 relative z-0 text-i2know-text-primary">
         {children}
-        <Footer />
+        {!isHomePage && <Footer />}
       </main>
     </div>
   );
