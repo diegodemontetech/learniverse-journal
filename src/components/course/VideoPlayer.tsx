@@ -88,16 +88,39 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) return;
 
-      const { error } = await supabase
+      // First check if a record exists
+      const { data: existingProgress } = await supabase
         .from("user_progress")
-        .upsert({
-          user_id: user.id,
-          lesson_id: lesson.id,
-          progress_percentage: newProgress,
-          completed_at: newProgress >= 100 ? new Date().toISOString() : null
-        });
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("lesson_id", lesson.id)
+        .maybeSingle();
 
-      if (error) throw error;
+      if (existingProgress) {
+        // Update existing record
+        const { error } = await supabase
+          .from("user_progress")
+          .update({
+            progress_percentage: newProgress,
+            completed_at: newProgress >= 100 ? new Date().toISOString() : null
+          })
+          .eq("id", existingProgress.id);
+
+        if (error) throw error;
+      } else {
+        // Insert new record
+        const { error } = await supabase
+          .from("user_progress")
+          .insert({
+            user_id: user.id,
+            lesson_id: lesson.id,
+            course_id: null, // You might want to pass course_id as a prop if needed
+            progress_percentage: newProgress,
+            completed_at: newProgress >= 100 ? new Date().toISOString() : null
+          });
+
+        if (error) throw error;
+      }
     } catch (error) {
       console.error("Erro ao atualizar progresso:", error);
     }
