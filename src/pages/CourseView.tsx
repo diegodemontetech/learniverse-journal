@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
 import CourseHeader from "@/components/course/CourseHeader";
 import VideoPlayer from "@/components/course/VideoPlayer";
 import LessonList from "@/components/course/LessonList";
+import SupportMaterials from "@/components/course/SupportMaterials";
+import { useCourseData } from "@/hooks/useCourseData";
 
 const CourseView = () => {
   const { courseId } = useParams();
@@ -17,45 +17,7 @@ const CourseView = () => {
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
   const [videoProgress, setVideoProgress] = useState(0);
 
-  const { data: course, isLoading: isLoadingCourse, error } = useQuery({
-    queryKey: ["course", courseId],
-    queryFn: async () => {
-      if (!courseId) throw new Error("Course ID is required");
-      
-      const { data, error } = await supabase
-        .from("courses")
-        .select(`
-          *,
-          lessons(
-            *,
-            user_progress(completed_at)
-          )
-        `)
-        .eq("id", courseId)
-        .single();
-
-      if (error) {
-        console.error("Error fetching course:", error);
-        throw error;
-      }
-      
-      if (!data) {
-        throw new Error("Course not found");
-      }
-      
-      return data;
-    },
-    retry: 1,
-    onError: (error) => {
-      console.error("Error in course query:", error);
-      toast({
-        title: "Error",
-        description: "Could not load the course. Please try again.",
-        variant: "destructive",
-      });
-      navigate("/courses");
-    }
-  });
+  const { data: course, isLoading: isLoadingCourse, error } = useCourseData(courseId);
 
   useEffect(() => {
     if (course?.lessons?.[0]) {
@@ -76,10 +38,13 @@ const CourseView = () => {
     }
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) throw new Error("User not authenticated");
+
       const { error: progressError } = await supabase
         .from("user_progress")
         .upsert({
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: user.id,
           course_id: courseId,
           lesson_id: lessonId,
           completed_at: new Date().toISOString(),
@@ -163,21 +128,7 @@ const CourseView = () => {
                 onComplete={handleLessonComplete}
                 onProgressChange={setVideoProgress}
               />
-              
-              {/* Support Materials Section */}
-              <div className="bg-[#161616] rounded-lg p-6">
-                <h3 className="text-white font-medium mb-4">Support Materials</h3>
-                <div className="space-y-2">
-                  <Button variant="outline" className="w-full justify-start gap-2">
-                    <FileText className="w-4 h-4" />
-                    Lesson Notes.pdf
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start gap-2">
-                    <FileText className="w-4 h-4" />
-                    Exercise Files.zip
-                  </Button>
-                </div>
-              </div>
+              <SupportMaterials />
             </>
           ) : (
             <div className="bg-[#161616] rounded-lg p-6 text-center">
