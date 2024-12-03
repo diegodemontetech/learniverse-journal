@@ -28,11 +28,16 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange }: VideoPlayerProps)
       if (!lesson.video_file_path) return;
 
       try {
+        // Create signed URL directly from the video_file_path
         const { data: { signedUrl }, error } = await supabase.storage
-          .from("lesson_videos")
-          .createSignedUrl(lesson.video_file_path, 3600); // 1 hour expiry
+          .from('lesson_videos')
+          .createSignedUrl(lesson.video_file_path, 3600);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error creating signed URL:", error);
+          throw error;
+        }
+
         setVideoUrl(signedUrl);
 
         // Try to get existing progress
