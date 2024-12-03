@@ -13,6 +13,7 @@ import NewsTab from "@/components/settings/NewsTab";
 import CertificatesTab from "@/components/settings/CertificatesTab";
 import ImmersionTab from "@/components/settings/ImmersionTab";
 import CategoriesTab from "@/components/settings/CategoriesTab";
+import EbooksTab from "@/components/settings/EbooksTab";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -68,7 +69,7 @@ const Settings = () => {
         
         <Tabs defaultValue="user-groups" className="space-y-6">
           <TabsList className="bg-i2know-card border-none">
-            <TabsTrigger value="user-groups">Grupos de Usuários</TabsTrigger>
+            <TabsTrigger value="user-groups">Grupos</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="categories">Categorias</TabsTrigger>
             <TabsTrigger value="courses">Cursos</TabsTrigger>
@@ -78,6 +79,7 @@ const Settings = () => {
             <TabsTrigger value="news">Notícias</TabsTrigger>
             <TabsTrigger value="certificates">Certificados</TabsTrigger>
             <TabsTrigger value="immersion">Imersão</TabsTrigger>
+            <TabsTrigger value="ebooks">E-books</TabsTrigger>
           </TabsList>
 
           <div className="relative z-10">
@@ -119,6 +121,10 @@ const Settings = () => {
 
             <TabsContent value="immersion">
               <ImmersionTab />
+            </TabsContent>
+
+            <TabsContent value="ebooks">
+              <EbooksTab />
             </TabsContent>
           </div>
         </Tabs>
