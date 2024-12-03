@@ -11,16 +11,29 @@ import QuizzesTab from "@/components/settings/QuizzesTab";
 import FeaturedTab from "@/components/settings/FeaturedTab";
 import NewsTab from "@/components/settings/NewsTab";
 import CertificatesTab from "@/components/settings/CertificatesTab";
-import { isAdmin } from "@/utils/auth";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    const checkAdmin = async () => {
-      const isUserAdmin = await isAdmin();
-      if (!isUserAdmin) {
+    const checkAdminAccess = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error("Not authenticated");
+        }
+
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (error || !profile || profile.role !== "admin") {
+          throw new Error("Not authorized");
+        }
+      } catch (error) {
         toast({
           title: "Acesso Negado",
           description: "Você não tem permissão para acessar esta página.",
@@ -30,7 +43,7 @@ const Settings = () => {
       }
     };
 
-    checkAdmin();
+    checkAdminAccess();
   }, [navigate, toast]);
 
   return (
