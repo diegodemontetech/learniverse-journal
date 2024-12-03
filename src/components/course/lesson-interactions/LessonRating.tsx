@@ -23,16 +23,15 @@ export const LessonRating = ({ lessonId }: LessonRatingProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Get user's rating
-      const { data: userRating } = await supabase
+      // Get user's rating - now handling empty results
+      const { data: userRatings } = await supabase
         .from('lesson_ratings')
         .select('rating')
         .eq('lesson_id', lessonId)
-        .eq('user_id', user.id)
-        .single();
+        .eq('user_id', user.id);
 
-      if (userRating) {
-        setRating(userRating.rating);
+      if (userRatings && userRatings.length > 0) {
+        setRating(userRatings[0].rating);
       }
 
       // Get total ratings and average

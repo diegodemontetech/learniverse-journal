@@ -22,16 +22,15 @@ export const LessonLikes = ({ lessonId }: LessonLikesProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Get user's like status
-      const { data: userLikeData } = await supabase
+      // Get user's like status - now handling empty results
+      const { data: userLikes } = await supabase
         .from('lesson_likes')
         .select('is_like')
         .eq('lesson_id', lessonId)
-        .eq('user_id', user.id)
-        .single();
+        .eq('user_id', user.id);
 
-      if (userLikeData) {
-        setUserLike(userLikeData.is_like);
+      if (userLikes && userLikes.length > 0) {
+        setUserLike(userLikes[0].is_like);
       } else {
         setUserLike(null);
       }
