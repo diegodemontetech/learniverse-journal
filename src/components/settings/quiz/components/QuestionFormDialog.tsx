@@ -32,7 +32,10 @@ const QuestionFormDialog = ({
               ? {
                   question: selectedQuestion.question,
                   correctAnswer: selectedQuestion.correct_answer,
-                  options: selectedQuestion.options.join(", "),
+                  option1: selectedQuestion.option1,
+                  option2: selectedQuestion.option2,
+                  option3: selectedQuestion.option3,
+                  option4: selectedQuestion.option4,
                   orderNumber: selectedQuestion.order_number,
                   points: selectedQuestion.points,
                 }

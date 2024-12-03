@@ -8,7 +8,12 @@ import Footer from '@/components/Footer';
 
 type Category = Tables<'categories'>;
 type Course = Tables<'courses'>;
-type News = Tables<'news'>;
+type News = Tables<'news'> & {
+  author: {
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
+};
 
 const Index = () => {
   const navigate = useNavigate();
@@ -40,7 +45,6 @@ const Index = () => {
     },
   });
 
-  // Fetch latest courses for carousel
   const { data: latestCourses } = useQuery({
     queryKey: ['latestCourses', selectedCategory],
     queryFn: async () => {
@@ -60,7 +64,6 @@ const Index = () => {
     },
   });
 
-  // Fetch latest news
   const { data: latestNews } = useQuery({
     queryKey: ['latestNews'],
     queryFn: async () => {
