@@ -80,11 +80,59 @@ const NewsSection = () => {
     return null;
   }
 
+  const featuredNews = latestNews.find(news => news.layout_position === 'featured');
+  const mostReadNews = latestNews.find(news => news.layout_position === 'most_read');
+  const regularNews = latestNews.filter(news => news.layout_position === 'regular');
+
   return (
     <div className="mb-12">
       <h2 className="text-2xl font-bold mb-6 text-white">Últimas Notícias</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {latestNews?.map((news) => (
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {featuredNews && (
+          <div 
+            className="lg:col-span-2 lg:row-span-2 bg-i2know-card rounded-lg overflow-hidden cursor-pointer transform transition-transform hover:scale-105"
+            onClick={() => navigate(`/news/${featuredNews.id}`)}
+          >
+            <div className="aspect-video relative">
+              <img
+                src={featuredNews.main_image_url || featuredNews.thumbnail_url || '/placeholder.svg'}
+                alt={featuredNews.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="p-4">
+              <h3 className="font-bold text-white mb-2 text-xl">{featuredNews.title}</h3>
+              <p className="text-gray-300 mb-4">{featuredNews.content}</p>
+              <div className="text-sm text-gray-400">
+                {featuredNews.author?.first_name} {featuredNews.author?.last_name}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {mostReadNews && (
+          <div 
+            className="lg:col-span-2 bg-i2know-card rounded-lg overflow-hidden cursor-pointer transform transition-transform hover:scale-105"
+            onClick={() => navigate(`/news/${mostReadNews.id}`)}
+          >
+            <div className="aspect-video relative">
+              <img
+                src={mostReadNews.thumbnail_url || '/placeholder.svg'}
+                alt={mostReadNews.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="p-4">
+              <h3 className="font-bold text-white mb-2">{mostReadNews.title}</h3>
+              <p className="text-sm text-gray-300 line-clamp-2">{mostReadNews.content}</p>
+              <div className="mt-2 text-xs text-gray-400">
+                {mostReadNews.author?.first_name} {mostReadNews.author?.last_name}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {regularNews.map((news) => (
           <div
             key={news.id}
             className="bg-i2know-card rounded-lg overflow-hidden cursor-pointer transform transition-transform hover:scale-105"
