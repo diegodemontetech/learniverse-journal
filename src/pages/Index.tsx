@@ -81,7 +81,7 @@ const Index = () => {
               <div className="flex gap-4 mb-8">
                 <Button 
                   size="lg"
-                  className="bg-red-600 hover:bg-red-700"
+                  className="bg-red-600 hover:bg-red-700 text-lg px-8"
                   onClick={() => navigate(`/courses/${featuredCourse.id}`)}
                 >
                   Começar Agora
@@ -89,7 +89,7 @@ const Index = () => {
                 <Button 
                   size="lg"
                   variant="secondary"
-                  className="bg-gray-600/80 hover:bg-gray-700/80 text-white"
+                  className="bg-gray-600/80 hover:bg-gray-700/80 text-white text-lg px-8"
                   onClick={() => navigate(`/courses/${featuredCourse.id}/details`)}
                 >
                   Mais Informações
@@ -113,7 +113,11 @@ const Index = () => {
       <div className="flex gap-2 mt-8 overflow-x-auto pb-4">
         <Button
           variant={selectedCategory === 'all' ? 'default' : 'secondary'}
-          className={selectedCategory === 'all' ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-800 text-white hover:bg-gray-700'}
+          className={`rounded-full px-8 py-2 h-auto ${
+            selectedCategory === 'all' 
+              ? 'bg-red-600 hover:bg-red-700' 
+              : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
+          }`}
           onClick={() => setSelectedCategory('all')}
         >
           Todos
@@ -122,7 +126,11 @@ const Index = () => {
           <Button
             key={category.id}
             variant={selectedCategory === category.id ? 'default' : 'secondary'}
-            className={selectedCategory === category.id ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-800 text-white hover:bg-gray-700'}
+            className={`rounded-full px-8 py-2 h-auto ${
+              selectedCategory === category.id 
+                ? 'bg-red-600 hover:bg-red-700' 
+                : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
+            }`}
             onClick={() => setSelectedCategory(category.id)}
           >
             {category.name}

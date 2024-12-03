@@ -71,10 +71,10 @@ const Courses = () => {
               value={sortBy}
               onValueChange={(value) => setSortBy(value as SortOption)}
             >
-              <SelectTrigger className="w-[180px] bg-i2know-card border-none text-white">
+              <SelectTrigger className="w-[180px] bg-[#2C2C2C] border-none text-white rounded-full">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
-              <SelectContent className="bg-i2know-card border-none">
+              <SelectContent className="bg-[#2C2C2C] border-none">
                 <SelectItem value="latest" className="text-white">Latest</SelectItem>
                 <SelectItem value="rating" className="text-white">Rating</SelectItem>
                 <SelectItem value="a-z" className="text-white">A-Z</SelectItem>

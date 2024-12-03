@@ -17,8 +17,8 @@ const Sidebar = () => {
       <div className="flex flex-col h-full">
         {/* Logo - Centered when collapsed */}
         <div className={cn(
-          "p-2 flex justify-between items-center",
-          isCollapsed && "h-16 items-center" // Added fixed height and centering
+          "p-2 flex items-center",
+          isCollapsed ? "h-16 justify-center" : "justify-between"
         )}>
           <img
             src={isCollapsed ? "https://i.ibb.co/W6FRw6H/i2know-1.png" : "https://i.ibb.co/Wt4MbD9/i2know.png"}
