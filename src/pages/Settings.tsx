@@ -34,12 +34,12 @@ const Settings = () => {
   }, [navigate, toast]);
 
   return (
-    <div className="p-8 bg-i2know-body min-h-screen">
-      <div className="max-w-7xl mx-auto">
+    <div className="p-8 bg-i2know-body min-h-screen z-10">
+      <div className="max-w-7xl mx-auto relative z-10">
         <h1 className="text-3xl font-bold text-white mb-8">Configurações</h1>
         
         <Tabs defaultValue="user-groups" className="space-y-6">
-          <TabsList className="bg-i2know-card">
+          <TabsList className="bg-i2know-card relative z-10">
             <TabsTrigger value="user-groups">Grupos de Usuários</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="courses">Cursos</TabsTrigger>
@@ -50,35 +50,35 @@ const Settings = () => {
             <TabsTrigger value="certificates">Certificados</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="user-groups">
+          <TabsContent value="user-groups" className="relative z-10">
             <UserGroupsTab />
           </TabsContent>
           
-          <TabsContent value="users">
+          <TabsContent value="users" className="relative z-10">
             <UsersTab />
           </TabsContent>
           
-          <TabsContent value="courses">
+          <TabsContent value="courses" className="relative z-10">
             <CoursesTab />
           </TabsContent>
           
-          <TabsContent value="lessons">
+          <TabsContent value="lessons" className="relative z-10">
             <LessonsTab />
           </TabsContent>
           
-          <TabsContent value="quizzes">
+          <TabsContent value="quizzes" className="relative z-10">
             <QuizzesTab />
           </TabsContent>
           
-          <TabsContent value="featured">
+          <TabsContent value="featured" className="relative z-10">
             <FeaturedTab />
           </TabsContent>
           
-          <TabsContent value="news">
+          <TabsContent value="news" className="relative z-10">
             <NewsTab />
           </TabsContent>
           
-          <TabsContent value="certificates">
+          <TabsContent value="certificates" className="relative z-10">
             <CertificatesTab />
           </TabsContent>
         </Tabs>

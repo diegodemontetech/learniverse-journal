@@ -85,7 +85,7 @@ const UsersTab = () => {
   };
 
   return (
-    <Card className="bg-i2know-card border-none">
+    <Card className="bg-i2know-card border-none relative z-20">
       <CardHeader>
         <CardTitle>Criar Novo Usuário</CardTitle>
       </CardHeader>
@@ -98,7 +98,7 @@ const UsersTab = () => {
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               placeholder="Digite o nome"
-              className="bg-i2know-body border-none"
+              className="bg-i2know-body border-none text-white"
             />
           </div>
           
@@ -109,7 +109,7 @@ const UsersTab = () => {
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               placeholder="Digite o sobrenome"
-              className="bg-i2know-body border-none"
+              className="bg-i2know-body border-none text-white"
             />
           </div>
         </div>
@@ -122,7 +122,7 @@ const UsersTab = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Digite o email"
-            className="bg-i2know-body border-none"
+            className="bg-i2know-body border-none text-white"
           />
         </div>
 
@@ -134,7 +134,7 @@ const UsersTab = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Digite a senha"
-            className="bg-i2know-body border-none"
+            className="bg-i2know-body border-none text-white"
           />
         </div>
 
@@ -144,7 +144,7 @@ const UsersTab = () => {
             value={selectedGroup}
             onValueChange={setSelectedGroup}
           >
-            <SelectTrigger className="bg-i2know-body border-none">
+            <SelectTrigger className="bg-i2know-body border-none text-white">
               <SelectValue placeholder="Selecione um grupo" />
             </SelectTrigger>
             <SelectContent>
@@ -159,7 +159,7 @@ const UsersTab = () => {
 
         <Button 
           onClick={handleCreateUser}
-          className="w-full"
+          className="w-full bg-i2know-accent hover:bg-opacity-90"
         >
           <Plus className="w-4 h-4 mr-2" />
           Criar Usuário
