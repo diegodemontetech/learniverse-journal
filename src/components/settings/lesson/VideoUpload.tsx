@@ -1,65 +1,67 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Upload } from "lucide-react";
 
 interface VideoUploadProps {
-  lessonId: string | null;
-  onUploadComplete: () => void;
+  lessonId: string;
+  onUploadComplete: (filePath: string) => void;
 }
 
 const VideoUpload = ({ lessonId, onUploadComplete }: VideoUploadProps) => {
   const { toast } = useToast();
-  const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-    }
-  };
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!file || !lessonId) return;
+    if (!file.type.startsWith('video/')) {
+      toast({
+        title: "Erro",
+        description: "Por favor, selecione um arquivo de vídeo válido.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsUploading(true);
+    const fileName = `${lessonId}/${crypto.randomUUID()}`;
+    
     try {
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${lessonId}/${crypto.randomUUID()}.${fileExt}`;
+      const { data, error } = await supabase.storage
+        .from('lesson_videos')
+        .upload(fileName, file);
 
-      const { error: uploadError } = await supabase.storage
-        .from("lesson_videos")
-        .upload(filePath, file);
+      if (error) throw error;
 
-      if (uploadError) throw uploadError;
+      if (data) {
+        const { data: { publicUrl } } = supabase.storage
+          .from('lesson_videos')
+          .getPublicUrl(data.path);
 
-      const { error: dbError } = await supabase
-        .from("lessons")
-        .update({
-          video_file_path: filePath,
-          video_file_type: file.type,
-          video_file_size: file.size,
-          youtube_url: null // Clear YouTube URL as we're using uploaded video
-        })
-        .eq("id", lessonId);
+        await supabase
+          .from('lessons')
+          .update({
+            video_file_path: publicUrl,
+            video_file_type: file.type,
+            video_file_size: file.size,
+          })
+          .eq('id', lessonId);
 
-      if (dbError) throw dbError;
-
-      toast({
-        title: "Sucesso",
-        description: "Vídeo enviado com sucesso",
-      });
-
-      setFile(null);
-      onUploadComplete();
+        onUploadComplete(publicUrl);
+        
+        toast({
+          title: "Sucesso",
+          description: "Vídeo enviado com sucesso!",
+        });
+      }
     } catch (error: any) {
       toast({
         title: "Erro",
-        description: error.message,
+        description: "Erro ao enviar o vídeo. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -68,22 +70,27 @@ const VideoUpload = ({ lessonId, onUploadComplete }: VideoUploadProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="video">Vídeo da Aula</Label>
-        <Input
-          id="video"
+    <div className="space-y-4">
+      <Label htmlFor="video">Vídeo da Aula</Label>
+      <div className="flex items-center gap-4">
+        <input
           type="file"
+          id="video"
           accept="video/*"
+          className="hidden"
           onChange={handleFileChange}
-          required
         />
+        <Button
+          type="button"
+          variant="outline"
+          disabled={isUploading}
+          onClick={() => document.getElementById('video')?.click()}
+        >
+          <Upload className="w-4 h-4 mr-2" />
+          {isUploading ? "Enviando..." : "Upload de Vídeo"}
+        </Button>
       </div>
-      <Button type="submit" disabled={isUploading || !lessonId}>
-        <Upload className="w-4 h-4 mr-2" />
-        {isUploading ? "Enviando..." : "Enviar Vídeo"}
-      </Button>
-    </form>
+    </div>
   );
 };
 

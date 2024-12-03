@@ -164,10 +164,16 @@ const CoursesTab = () => {
 
   const handleDelete = async (courseId: string) => {
     try {
+      // First delete related records
+      await supabase.from('position_courses').delete().eq('course_id', courseId);
+      await supabase.from('user_progress').delete().eq('course_id', courseId);
+      await supabase.from('certificates').delete().eq('course_id', courseId);
+      
+      // Then delete the course
       const { error } = await supabase
-        .from("courses")
+        .from('courses')
         .delete()
-        .eq("id", courseId);
+        .eq('id', courseId);
 
       if (error) throw error;
 

@@ -1,65 +1,63 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { FileUp } from "lucide-react";
 
 interface SupportMaterialUploadProps {
-  lessonId: string | null;
-  onUploadComplete: () => void;
+  lessonId: string;
+  onUploadComplete: (material: any) => void;
 }
 
 const SupportMaterialUpload = ({ lessonId, onUploadComplete }: SupportMaterialUploadProps) => {
   const { toast } = useToast();
-  const [title, setTitle] = useState("");
-  const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!file || !lessonId) return;
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     setIsUploading(true);
+    const fileName = `${lessonId}/${crypto.randomUUID()}-${file.name}`;
+    
     try {
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${lessonId}/${crypto.randomUUID()}.${fileExt}`;
+      const { data, error } = await supabase.storage
+        .from('support_materials')
+        .upload(fileName, file);
 
-      const { error: uploadError } = await supabase.storage
-        .from("support_materials")
-        .upload(filePath, file);
+      if (error) throw error;
 
-      if (uploadError) throw uploadError;
+      if (data) {
+        const { data: { publicUrl } } = supabase.storage
+          .from('support_materials')
+          .getPublicUrl(data.path);
 
-      const { error: dbError } = await supabase.from("support_materials").insert({
-        lesson_id: lessonId,
-        title,
-        file_path: filePath,
-        file_type: file.type,
-        file_size: file.size,
-      });
+        const { data: material, error: dbError } = await supabase
+          .from('support_materials')
+          .insert({
+            lesson_id: lessonId,
+            title: file.name,
+            file_path: publicUrl,
+            file_type: file.type,
+            file_size: file.size,
+          })
+          .select()
+          .single();
 
-      if (dbError) throw dbError;
+        if (dbError) throw dbError;
 
-      toast({
-        title: "Sucesso",
-        description: "Material de apoio enviado com sucesso",
-      });
-
-      setTitle("");
-      setFile(null);
-      onUploadComplete();
+        onUploadComplete(material);
+        
+        toast({
+          title: "Sucesso",
+          description: "Material de apoio enviado com sucesso!",
+        });
+      }
     } catch (error: any) {
       toast({
         title: "Erro",
-        description: error.message,
+        description: "Erro ao enviar o material. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -68,30 +66,27 @@ const SupportMaterialUpload = ({ lessonId, onUploadComplete }: SupportMaterialUp
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="title">Título do Material</Label>
-        <Input
-          id="title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <Label htmlFor="file">Arquivo</Label>
-        <Input
-          id="file"
+    <div className="space-y-4">
+      <Label htmlFor="material">Material de Apoio</Label>
+      <div className="flex items-center gap-4">
+        <input
           type="file"
+          id="material"
+          accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+          className="hidden"
           onChange={handleFileChange}
-          required
         />
+        <Button
+          type="button"
+          variant="outline"
+          disabled={isUploading}
+          onClick={() => document.getElementById('material')?.click()}
+        >
+          <FileUp className="w-4 h-4 mr-2" />
+          {isUploading ? "Enviando..." : "Upload de Material"}
+        </Button>
       </div>
-      <Button type="submit" disabled={isUploading || !lessonId}>
-        <Upload className="w-4 h-4 mr-2" />
-        {isUploading ? "Enviando..." : "Enviar Material"}
-      </Button>
-    </form>
+    </div>
   );
 };
 
