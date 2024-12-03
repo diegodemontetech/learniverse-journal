@@ -87,7 +87,7 @@ const CourseManagementDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#1a1717] border-none text-white">
+      <DialogContent className="bg-i2know-card border-none text-white">
         <DialogHeader>
           <DialogTitle>Manage Courses for {positionName}</DialogTitle>
         </DialogHeader>

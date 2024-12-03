@@ -31,6 +31,31 @@ const Immersion = () => {
     },
   });
 
+  const { data: departments, isLoading: isLoadingDepartments } = useQuery({
+    queryKey: ["departments"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("departments")
+        .select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: positions, isLoading: isLoadingPositions } = useQuery({
+    queryKey: ["positions", selectedDepartment],
+    queryFn: async () => {
+      if (!selectedDepartment) return [];
+      const { data, error } = await supabase
+        .from("positions")
+        .select("*")
+        .eq("department_id", selectedDepartment);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedDepartment,
+  });
+
   const { data: immersionCourses, isLoading: isLoadingCourses } = useQuery({
     queryKey: ["immersion-courses", userProfile?.position_id],
     queryFn: async () => {
@@ -102,19 +127,25 @@ const Immersion = () => {
 
       {/* Departments */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        {departments?.map((department) => (
-          <Card 
-            key={department.id}
-            className={`bg-i2know-card border-none cursor-pointer transition-colors ${
-              selectedDepartment === department.id ? 'ring-2 ring-i2know-accent' : ''
-            }`}
-            onClick={() => setSelectedDepartment(department.id)}
-          >
-            <CardHeader>
-              <CardTitle className="text-white">{department.name}</CardTitle>
-            </CardHeader>
-          </Card>
-        ))}
+        {isLoadingDepartments ? (
+          [1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-32" />
+          ))
+        ) : (
+          departments?.map((department) => (
+            <Card 
+              key={department.id}
+              className={`bg-i2know-card border-none cursor-pointer transition-colors ${
+                selectedDepartment === department.id ? 'ring-2 ring-i2know-accent' : ''
+              }`}
+              onClick={() => setSelectedDepartment(department.id)}
+            >
+              <CardHeader>
+                <CardTitle className="text-white">{department.name}</CardTitle>
+              </CardHeader>
+            </Card>
+          ))
+        )}
       </div>
 
       {/* Positions */}
