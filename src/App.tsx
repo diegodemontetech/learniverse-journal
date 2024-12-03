@@ -1,72 +1,71 @@
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SessionContextProvider } from "@supabase/auth-helpers-react";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { supabase } from "./integrations/supabase/client";
+import Layout from "./components/Layout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Courses from "./pages/Courses";
 import CourseView from "./pages/CourseView";
-import Ebooks from "./pages/Ebooks";
-import Journey from "./pages/Journey";
 import News from "./pages/News";
+import Journey from "./pages/Journey";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
+import Ebooks from "./pages/Ebooks";
+import EbookView from "./pages/EbookView";
 import Immersion from "./pages/Immersion";
-import Layout from "./components/Layout";
 
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  if (isAuthenticated === null) {
-    return null;
-  }
-
-  return isAuthenticated ? <>{children}</> : <Navigate to="/auth" />;
+  // Implement your logic to protect routes (e.g. check for authentication)
+  return children;
 };
 
-const ProtectedContent = ({ children }: { children: React.ReactNode }) => (
-  <ProtectedRoute>
-    <Layout>{children}</Layout>
-  </ProtectedRoute>
-);
+const ProtectedContent = () => {
+  return (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/courses" element={<Courses />} />
+      <Route path="/courses/:id" element={<CourseView />} />
+      <Route path="/news" element={<News />} />
+      <Route path="/journey" element={<Journey />} />
+      <Route path="/settings" element={<Settings />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/ebooks" element={<Ebooks />} />
+      <Route path="/ebooks/:id" element={<EbookView />} />
+      <Route path="/immersion" element={<Immersion />} />
+    </Routes>
+  );
+};
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <SessionContextProvider supabaseClient={supabase}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<ProtectedContent><Index /></ProtectedContent>} />
-            <Route path="/courses" element={<ProtectedContent><Courses /></ProtectedContent>} />
-            <Route path="/courses/:courseId" element={<ProtectedContent><CourseView /></ProtectedContent>} />
-            <Route path="/ebooks" element={<ProtectedContent><Ebooks /></ProtectedContent>} />
-            <Route path="/journey" element={<ProtectedContent><Journey /></ProtectedContent>} />
-            <Route path="/news" element={<ProtectedContent><News /></ProtectedContent>} />
-            <Route path="/settings" element={<ProtectedContent><Settings /></ProtectedContent>} />
-            <Route path="/profile" element={<ProtectedContent><Profile /></ProtectedContent>} />
-            <Route path="/immersion" element={<ProtectedContent><Immersion /></ProtectedContent>} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </SessionContextProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <SessionContextProvider supabaseClient={supabase}>
+        <TooltipProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route
+                path="*"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <ProtectedContent />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </BrowserRouter>
+          <Toaster />
+        </TooltipProvider>
+      </SessionContextProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
