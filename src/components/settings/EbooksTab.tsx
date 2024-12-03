@@ -2,15 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -18,17 +10,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, Pencil, Trash2 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import EbookForm from "./ebook/EbookForm";
+import EbookList from "./ebook/EbookList";
+import EbookViewer from "./ebook/EbookViewer";
 
 interface Ebook {
   id: string;
@@ -51,15 +36,6 @@ const EbooksTab = () => {
   const [viewerOpen, setViewerOpen] = useState(false);
   const [selectedEbook, setSelectedEbook] = useState<Ebook | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [formData, setFormData] = useState({
-    title: "",
-    author: "",
-    description: "",
-    category_id: "",
-    total_pages: 0,
-    thumbnail_url: "",
-    pdf_url: "",
-  });
 
   const { data: ebooks, isLoading } = useQuery({
     queryKey: ["ebooks"],
@@ -88,7 +64,7 @@ const EbooksTab = () => {
   });
 
   const createEbookMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
+    mutationFn: async (data: any) => {
       const { error } = await supabase.from("ebooks").insert([data]);
       if (error) throw error;
     },
@@ -96,7 +72,6 @@ const EbooksTab = () => {
       queryClient.invalidateQueries({ queryKey: ["ebooks"] });
       toast({ title: "E-book criado com sucesso!" });
       setIsOpen(false);
-      resetForm();
     },
     onError: () => {
       toast({
@@ -107,13 +82,7 @@ const EbooksTab = () => {
   });
 
   const updateEbookMutation = useMutation({
-    mutationFn: async ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: typeof formData;
-    }) => {
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
       const { error } = await supabase
         .from("ebooks")
         .update(data)
@@ -124,7 +93,6 @@ const EbooksTab = () => {
       queryClient.invalidateQueries({ queryKey: ["ebooks"] });
       toast({ title: "E-book atualizado com sucesso!" });
       setIsOpen(false);
-      resetForm();
     },
     onError: () => {
       toast({
@@ -151,8 +119,7 @@ const EbooksTab = () => {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (formData: any) => {
     if (selectedEbook) {
       updateEbookMutation.mutate({
         id: selectedEbook.id,
@@ -163,45 +130,11 @@ const EbooksTab = () => {
     }
   };
 
-  const handleEdit = (ebook: Ebook) => {
-    setSelectedEbook(ebook);
-    setFormData({
-      title: ebook.title,
-      author: ebook.author,
-      description: ebook.description,
-      category_id: ebook.category_id,
-      total_pages: ebook.total_pages,
-      thumbnail_url: ebook.thumbnail_url,
-      pdf_url: ebook.pdf_url,
-    });
-    setIsOpen(true);
-  };
-
-  const handleDelete = (id: string) => {
-    if (window.confirm("Tem certeza que deseja excluir este e-book?")) {
-      deleteEbookMutation.mutate(id);
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      title: "",
-      author: "",
-      description: "",
-      category_id: "",
-      total_pages: 0,
-      thumbnail_url: "",
-      pdf_url: "",
-    });
-    setSelectedEbook(null);
-  };
-
   const handlePageChange = async (newPage: number) => {
     if (!selectedEbook) return;
     
     setCurrentPage(newPage);
     
-    // Update reading progress in the database
     const { error } = await supabase.from("user_ebook_progress").upsert({
       user_id: (await supabase.auth.getUser()).data.user?.id,
       ebook_id: selectedEbook.id,
@@ -229,7 +162,7 @@ const EbooksTab = () => {
           <DialogTrigger asChild>
             <Button
               onClick={() => {
-                resetForm();
+                setSelectedEbook(null);
                 setIsOpen(true);
               }}
             >
@@ -242,99 +175,11 @@ const EbooksTab = () => {
                 {selectedEbook ? "Editar E-book" : "Novo E-book"}
               </DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Título</label>
-                  <Input
-                    value={formData.title}
-                    onChange={(e) =>
-                      setFormData({ ...formData, title: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Autor</label>
-                  <Input
-                    value={formData.author}
-                    onChange={(e) =>
-                      setFormData({ ...formData, author: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2 col-span-2">
-                  <label className="text-sm font-medium">Sinopse</label>
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Categoria</label>
-                  <Select
-                    value={formData.category_id}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, category_id: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories?.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Quantidade de Páginas
-                  </label>
-                  <Input
-                    type="number"
-                    value={formData.total_pages}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        total_pages: parseInt(e.target.value),
-                      })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">URL da Thumbnail</label>
-                  <Input
-                    value={formData.thumbnail_url}
-                    onChange={(e) =>
-                      setFormData({ ...formData, thumbnail_url: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">URL do PDF</label>
-                  <Input
-                    value={formData.pdf_url}
-                    onChange={(e) =>
-                      setFormData({ ...formData, pdf_url: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-              </div>
-              <Button type="submit" className="w-full">
-                {selectedEbook ? "Atualizar" : "Criar"}
-              </Button>
-            </form>
+            <EbookForm
+              initialData={selectedEbook}
+              onSubmit={handleSubmit}
+              onCancel={() => setIsOpen(false)}
+            />
           </DialogContent>
         </Dialog>
 
@@ -343,88 +188,34 @@ const EbooksTab = () => {
             <DialogHeader>
               <DialogTitle>{selectedEbook?.title}</DialogTitle>
             </DialogHeader>
-            <div className="flex flex-col h-full">
-              <div className="flex-1 relative">
-                <iframe
-                  src={selectedEbook?.pdf_url}
-                  className="w-full h-full"
-                  title={selectedEbook?.title}
-                />
-              </div>
-              <div className="flex justify-between items-center mt-4">
-                <Button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage <= 1}
-                >
-                  Anterior
-                </Button>
-                <span>
-                  Página {currentPage} de {selectedEbook?.total_pages}
-                </span>
-                <Button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={
-                    !selectedEbook || currentPage >= selectedEbook.total_pages
-                  }
-                >
-                  Próxima
-                </Button>
-              </div>
-            </div>
+            <EbookViewer
+              ebook={selectedEbook}
+              currentPage={currentPage}
+              onPageChange={handlePageChange}
+            />
           </DialogContent>
         </Dialog>
       </div>
 
       <Card>
         <CardContent className="p-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Título</TableHead>
-                <TableHead>Autor</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Páginas</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {ebooks?.map((ebook) => (
-                <TableRow key={ebook.id}>
-                  <TableCell>{ebook.title}</TableCell>
-                  <TableCell>{ebook.author}</TableCell>
-                  <TableCell>{ebook.category?.name}</TableCell>
-                  <TableCell>{ebook.total_pages}</TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => {
-                        setSelectedEbook(ebook);
-                        setCurrentPage(1);
-                        setViewerOpen(true);
-                      }}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleEdit(ebook)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleDelete(ebook.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <EbookList
+            ebooks={ebooks || []}
+            onEdit={(ebook) => {
+              setSelectedEbook(ebook);
+              setIsOpen(true);
+            }}
+            onDelete={(id) => {
+              if (window.confirm("Tem certeza que deseja excluir este e-book?")) {
+                deleteEbookMutation.mutate(id);
+              }
+            }}
+            onView={(ebook) => {
+              setSelectedEbook(ebook);
+              setCurrentPage(1);
+              setViewerOpen(true);
+            }}
+          />
         </CardContent>
       </Card>
     </div>
