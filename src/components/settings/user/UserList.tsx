@@ -1,149 +1,137 @@
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Pencil, Trash2, Ban } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import UserForm from "./UserForm";
 
 const UserList = () => {
+  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [editingUser, setEditingUser] = useState<any>(null);
   const queryClient = useQueryClient();
 
-  const { data: users, refetch } = useQuery({
-    queryKey: ["profiles"],
+  const { data: users, isLoading } = useQuery({
+    queryKey: ["users"],
     queryFn: async () => {
-      const { data: profiles, error } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
-        .select(`
-          *,
-          departments(name),
-          positions(name),
-          user_groups(name)
-        `);
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return profiles;
+      return data;
     },
   });
 
   const handleDeleteUser = async (userId: string) => {
-    if (window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
-      try {
-        // First delete from profiles table
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .delete()
-          .eq("id", userId);
-          
-        if (profileError) throw profileError;
+    try {
+      setIsDeleting(true);
 
-        // Then delete from auth.users
-        const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-        if (authError) throw authError;
+      // Delete user's profile first (this will cascade to related records due to RLS)
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", userId);
 
-        toast({
-          title: "Success",
-          description: "User deleted successfully",
-        });
+      if (profileError) throw profileError;
 
-        queryClient.invalidateQueries({ queryKey: ["profiles"] });
-      } catch (error: any) {
-        console.error("Delete user error:", error);
-        toast({
-          title: "Error",
-          description: error.message || "Failed to delete user",
-          variant: "destructive",
-        });
-      }
+      // Invalidate and refetch users query
+      await queryClient.invalidateQueries({ queryKey: ["users"] });
+
+      toast({
+        title: "Sucesso",
+        description: "Usuário excluído com sucesso",
+      });
+    } catch (error) {
+      console.error("Delete user error:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o usuário",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const handleEditSuccess = async () => {
-    setEditingUser(null);
-    await queryClient.invalidateQueries({ queryKey: ["profiles"] });
-    toast({
-      title: "Success",
-      description: "User updated successfully",
-    });
-  };
-
-  const filteredUsers = users?.filter(user => 
-    user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.last_name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  if (isLoading) {
+    return <div>Carregando...</div>;
+  }
 
   return (
-    <div className="space-y-4">
-      <Input
-        placeholder="Search users..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="bg-i2know-body border-none text-white placeholder:text-gray-400"
-      />
-      
-      <div className="rounded-md border border-i2know-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Position</TableHead>
-              <TableHead>Group</TableHead>
-              <TableHead>Actions</TableHead>
+    <div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Nome</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Função</TableHead>
+            <TableHead>Ações</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {users?.map((user) => (
+            <TableRow key={user.id}>
+              <TableCell>
+                {user.first_name} {user.last_name}
+              </TableCell>
+              <TableCell>{user.email}</TableCell>
+              <TableCell>{user.role}</TableCell>
+              <TableCell>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      disabled={isDeleting}
+                    >
+                      Excluir
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Tem certeza que deseja excluir este usuário?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta ação não pode ser desfeita. Todos os dados do usuário
+                        serão permanentemente excluídos.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDeleteUser(user.id)}
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? "Excluindo..." : "Excluir"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredUsers?.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>{`${user.first_name || ''} ${user.last_name || ''}`}</TableCell>
-                <TableCell>{user.departments?.name}</TableCell>
-                <TableCell>{user.positions?.name}</TableCell>
-                <TableCell>{user.user_groups?.name}</TableCell>
-                <TableCell className="space-x-2">
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={() => setEditingUser(user)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon">
-                    <Ban className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={() => handleDeleteUser(user.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
-        <DialogContent className="bg-i2know-card border-none">
-          <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
-          </DialogHeader>
-          {editingUser && (
-            <UserForm 
-              initialData={editingUser}
-              onSuccess={handleEditSuccess}
-              mode="edit"
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 };
