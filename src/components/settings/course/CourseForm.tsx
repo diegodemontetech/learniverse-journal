@@ -21,6 +21,7 @@ const CourseForm = ({ course, onSuccess }: CourseFormProps) => {
       instructor: course?.instructor || "",
       duration: course?.duration || "",
       category_id: course?.category_id || "",
+      thumbnail_url: course?.thumbnail_url || "",
     },
   });
 
@@ -47,6 +48,7 @@ const CourseForm = ({ course, onSuccess }: CourseFormProps) => {
             instructor: data.instructor,
             duration: data.duration,
             category_id: data.category_id,
+            thumbnail_url: data.thumbnail_url,
           })
           .eq("id", course.id);
 
@@ -108,6 +110,13 @@ const CourseForm = ({ course, onSuccess }: CourseFormProps) => {
           type="number"
           placeholder="Duration (minutes)"
           {...register("duration", { required: true })}
+          className="bg-[#2a2727] border-none text-white"
+        />
+      </div>
+      <div>
+        <Input
+          placeholder="Thumbnail URL"
+          {...register("thumbnail_url")}
           className="bg-[#2a2727] border-none text-white"
         />
       </div>
