@@ -1,4 +1,4 @@
-import { ThumbsUp, ThumbsDown, Reply } from "lucide-react";
+import { ThumbsUp, Reply } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommentForm } from "./comments/CommentForm";
 import type { Comment } from "./comments/types";
@@ -47,7 +47,7 @@ export const CommentItem = ({
             >
               <ThumbsUp
                 className={`w-4 h-4 ${
-                  comment.user_like === true ? "text-green-500" : "text-gray-400"
+                  comment.user_like ? "text-green-500" : "text-gray-400"
                 }`}
               />
               <span className="text-sm text-gray-400">{comment.likes_count}</span>
