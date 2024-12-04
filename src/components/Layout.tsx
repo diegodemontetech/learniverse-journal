@@ -43,8 +43,9 @@ const Layout = ({ children }: LayoutProps) => {
       {/* Sidebar with mobile support */}
       <div
         className={cn(
-          "fixed left-0 top-0 z-50 h-screen transition-transform duration-300 ease-in-out",
+          "fixed left-0 top-0 z-50 h-screen transition-all duration-300 ease-in-out",
           isMobile && !isSidebarOpen && "-translate-x-full",
+          isMobile && isSidebarOpen && "translate-x-0",
           "shadow-xl"
         )}
       >
@@ -52,9 +53,12 @@ const Layout = ({ children }: LayoutProps) => {
       </div>
 
       {/* Overlay for mobile */}
-      {isMobile && isSidebarOpen && (
+      {isMobile && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
+          className={cn(
+            "fixed inset-0 bg-black/50 z-40 transition-opacity duration-300",
+            isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          )}
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
