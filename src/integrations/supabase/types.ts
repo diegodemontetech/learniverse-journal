@@ -116,6 +116,7 @@ export type Database = {
           duration: number | null
           id: string
           instructor: string
+          is_active: boolean | null
           is_featured: boolean | null
           thumbnail_url: string | null
           title: string
@@ -128,6 +129,7 @@ export type Database = {
           duration?: number | null
           id?: string
           instructor: string
+          is_active?: boolean | null
           is_featured?: boolean | null
           thumbnail_url?: string | null
           title: string
@@ -140,6 +142,7 @@ export type Database = {
           duration?: number | null
           id?: string
           instructor?: string
+          is_active?: boolean | null
           is_featured?: boolean | null
           thumbnail_url?: string | null
           title?: string
@@ -422,6 +425,7 @@ export type Database = {
           description: string | null
           duration: number | null
           id: string
+          is_active: boolean | null
           order_number: number
           title: string
           video_file_path: string | null
@@ -435,6 +439,7 @@ export type Database = {
           description?: string | null
           duration?: number | null
           id?: string
+          is_active?: boolean | null
           order_number: number
           title: string
           video_file_path?: string | null
@@ -448,6 +453,7 @@ export type Database = {
           description?: string | null
           duration?: number | null
           id?: string
+          is_active?: boolean | null
           order_number?: number
           title?: string
           video_file_path?: string | null

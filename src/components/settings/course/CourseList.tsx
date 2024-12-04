@@ -5,7 +5,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Pencil, Trash2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
@@ -19,31 +20,28 @@ const CourseList = ({ courses, onEdit }: CourseListProps) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const handleDelete = async (courseId: string) => {
-    if (window.confirm("Are you sure you want to delete this course?")) {
-      try {
-        // Delete the course (cascading will handle related records)
-        const { error } = await supabase
-          .from("courses")
-          .delete()
-          .eq("id", courseId);
+  const handleToggleActive = async (courseId: string, currentState: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("courses")
+        .update({ is_active: !currentState })
+        .eq("id", courseId);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        await queryClient.invalidateQueries({ queryKey: ["courses"] });
-        
-        toast({
-          title: "Success",
-          description: "Course deleted successfully",
-        });
-      } catch (error: any) {
-        console.error("Error deleting course:", error);
-        toast({
-          title: "Error",
-          description: error.message || "Failed to delete course",
-          variant: "destructive",
-        });
-      }
+      await queryClient.invalidateQueries({ queryKey: ["courses"] });
+      
+      toast({
+        title: "Success",
+        description: `Course ${!currentState ? 'activated' : 'deactivated'} successfully`,
+      });
+    } catch (error: any) {
+      console.error("Error toggling course:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to toggle course status",
+        variant: "destructive",
+      });
     }
   };
 
@@ -58,20 +56,22 @@ const CourseList = ({ courses, onEdit }: CourseListProps) => {
             <CardTitle className="text-xl font-bold">
               {course.title}
             </CardTitle>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-400">
+                  {course.is_active ? 'Ativo' : 'Inativo'}
+                </span>
+                <Switch
+                  checked={course.is_active}
+                  onCheckedChange={() => handleToggleActive(course.id, course.is_active)}
+                />
+              </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => onEdit(course)}
               >
                 <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDelete(course.id)}
-              >
-                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </CardHeader>
