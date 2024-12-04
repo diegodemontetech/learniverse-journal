@@ -43,10 +43,10 @@ const ProtectedContent = () => {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <SessionContextProvider supabaseClient={supabase}>
-        <TooltipProvider>
-          <BrowserRouter>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <SessionContextProvider supabaseClient={supabase}>
+          <TooltipProvider>
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route
@@ -60,11 +60,11 @@ function App() {
                 }
               />
             </Routes>
-          </BrowserRouter>
-          <Toaster />
-        </TooltipProvider>
-      </SessionContextProvider>
-    </QueryClientProvider>
+            <Toaster />
+          </TooltipProvider>
+        </SessionContextProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
 }
 
