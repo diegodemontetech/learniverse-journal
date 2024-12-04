@@ -44,16 +44,14 @@ export const useComments = (newsId: string) => {
 
           const { data: userLikes } = await supabase
             .from('news_comment_likes')
-            .select('is_like')
+            .select('*')
             .eq('comment_id', comment.id)
             .eq('user_id', user.id);
-
-          const userLike = userLikes && userLikes.length > 0 ? userLikes[0].is_like : null;
 
           return {
             ...comment,
             replies: replies || [],
-            user_like: userLike,
+            user_like: userLikes && userLikes.length > 0,
           };
         })
       );
@@ -140,7 +138,7 @@ export const useComments = (newsId: string) => {
         return;
       }
 
-      // Check if user already liked/disliked
+      // Check if user already liked
       const { data: existingLike } = await supabase
         .from("news_comment_likes")
         .select("*")
@@ -149,29 +147,18 @@ export const useComments = (newsId: string) => {
         .single();
 
       if (existingLike) {
-        // If same action, remove like/dislike
-        if (existingLike.is_like === isLike) {
-          const { error } = await supabase
-            .from("news_comment_likes")
-            .delete()
-            .eq("id", existingLike.id);
+        // Remove like
+        const { error } = await supabase
+          .from("news_comment_likes")
+          .delete()
+          .eq("id", existingLike.id);
 
-          if (error) throw error;
-        } else {
-          // If different action, update
-          const { error } = await supabase
-            .from("news_comment_likes")
-            .update({ is_like: isLike })
-            .eq("id", existingLike.id);
-
-          if (error) throw error;
-        }
+        if (error) throw error;
       } else {
-        // Create new like/dislike
+        // Add like
         const { error } = await supabase.from("news_comment_likes").insert({
           comment_id: commentId,
           user_id: user.id,
-          is_like: isLike,
         });
 
         if (error) throw error;

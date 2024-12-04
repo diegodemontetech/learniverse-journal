@@ -52,17 +52,6 @@ export const CommentItem = ({
               />
               <span className="text-sm text-gray-400">{comment.likes_count}</span>
             </button>
-            <button
-              onClick={() => onLike(comment.id, false)}
-              className="flex items-center gap-1"
-            >
-              <ThumbsDown
-                className={`w-4 h-4 ${
-                  comment.user_like === false ? "text-red-500" : "text-gray-400"
-                }`}
-              />
-              <span className="text-sm text-gray-400">{comment.dislikes_count}</span>
-            </button>
             {!isReply && (
               <button
                 onClick={() => onReply(comment.id)}

@@ -700,18 +700,21 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          is_like: boolean
           news_id: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
+          is_like: boolean
           news_id?: string | null
           user_id?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
+          is_like?: boolean
           news_id?: string | null
           user_id?: string | null
         }
@@ -725,6 +728,45 @@ export type Database = {
           },
           {
             foreignKeyName: "news_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      news_ratings: {
+        Row: {
+          created_at: string | null
+          id: string
+          news_id: string | null
+          rating: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          news_id?: string | null
+          rating?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          news_id?: string | null
+          rating?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_ratings_news_id_fkey"
+            columns: ["news_id"]
+            isOneToOne: false
+            referencedRelation: "news"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "news_ratings_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
