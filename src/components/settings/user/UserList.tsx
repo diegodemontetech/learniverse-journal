@@ -35,10 +35,15 @@ const UserList = ({ onEdit }: UserListProps) => {
   const { data: users, isLoading } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      // Get profiles with auth user data
+      // Get profiles with auth user data using a different join syntax
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("*, auth_user:id(email)")
+        .select(`
+          *,
+          auth_user:id (
+            email
+          )
+        `)
         .order("created_at", { ascending: false });
 
       if (profilesError) throw profilesError;
