@@ -18,7 +18,7 @@ const UsersTab = () => {
       </TabsContent>
 
       <TabsContent value="create">
-        <UserForm editingUser={editingUser} onCancel={() => setEditingUser(null)} />
+        <UserForm initialData={editingUser} onSuccess={() => setEditingUser(null)} mode={editingUser ? 'edit' : 'create'} />
       </TabsContent>
     </Tabs>
   );
