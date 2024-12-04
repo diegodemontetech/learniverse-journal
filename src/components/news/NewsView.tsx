@@ -20,7 +20,7 @@ const NewsView = ({ newsId }: NewsViewProps) => {
         .from("news")
         .select(`
           *,
-          author:profiles(first_name, last_name)
+          author:profiles!news_author_id_fkey(first_name, last_name)
         `)
         .eq("id", newsId)
         .single();
