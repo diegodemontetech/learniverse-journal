@@ -35,17 +35,17 @@ const UserList = () => {
   const handleDeleteUser = async (userId: string) => {
     if (window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
       try {
-        // Delete from auth.users which will cascade to profiles
-        const { error: authError } = await supabase.auth.admin.deleteUser(userId);
-        if (authError) throw authError;
-
-        // Delete from profiles table
+        // First delete from profiles table
         const { error: profileError } = await supabase
           .from("profiles")
           .delete()
           .eq("id", userId);
           
         if (profileError) throw profileError;
+
+        // Then delete from auth.users
+        const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+        if (authError) throw authError;
 
         toast({
           title: "Success",
@@ -57,7 +57,7 @@ const UserList = () => {
         console.error("Delete user error:", error);
         toast({
           title: "Error",
-          description: error.message,
+          description: error.message || "Failed to delete user",
           variant: "destructive",
         });
       }
