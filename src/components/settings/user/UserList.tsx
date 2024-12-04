@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Pencil, Trash2, Ban } from "lucide-react";
-import { deleteUser } from "@/utils/deleteHandlers";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import UserForm from "./UserForm";
@@ -36,7 +35,7 @@ const UserList = () => {
   const handleDeleteUser = async (userId: string) => {
     if (window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
       try {
-        // First delete from auth.users which will cascade to profiles
+        // Delete from auth.users which will cascade to profiles
         const { error: authError } = await supabase.auth.admin.deleteUser(userId);
         if (authError) throw authError;
 
@@ -53,9 +52,9 @@ const UserList = () => {
           description: "User deleted successfully",
         });
 
-        await queryClient.invalidateQueries({ queryKey: ["profiles"] });
-        await refetch();
+        queryClient.invalidateQueries({ queryKey: ["profiles"] });
       } catch (error: any) {
+        console.error("Delete user error:", error);
         toast({
           title: "Error",
           description: error.message,
@@ -68,7 +67,6 @@ const UserList = () => {
   const handleEditSuccess = async () => {
     setEditingUser(null);
     await queryClient.invalidateQueries({ queryKey: ["profiles"] });
-    await refetch();
     toast({
       title: "Success",
       description: "User updated successfully",

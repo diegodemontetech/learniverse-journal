@@ -56,7 +56,6 @@ const UserForm = ({ initialData, onSuccess, mode = 'create' }: UserFormProps) =>
   const handleSubmit = async () => {
     try {
       if (mode === 'edit') {
-        // Update profile
         const { error: updateError } = await supabase
           .from("profiles")
           .update({
@@ -70,8 +69,11 @@ const UserForm = ({ initialData, onSuccess, mode = 'create' }: UserFormProps) =>
           .eq("id", initialData.id);
 
         if (updateError) throw updateError;
+
+        if (onSuccess) {
+          onSuccess();
+        }
       } else {
-        // Create new user
         if (!email || !password || !firstName || !lastName || !selectedRole) {
           toast({
             title: "Error",
@@ -97,6 +99,10 @@ const UserForm = ({ initialData, onSuccess, mode = 'create' }: UserFormProps) =>
 
         if (authError) throw authError;
 
+        if (!authData.user?.id) {
+          throw new Error("Failed to create user");
+        }
+
         const { error: profileError } = await supabase
           .from("profiles")
           .update({
@@ -107,22 +113,16 @@ const UserForm = ({ initialData, onSuccess, mode = 'create' }: UserFormProps) =>
             position_id: selectedPosition,
             role: selectedRole,
           })
-          .eq("id", authData.user?.id);
+          .eq("id", authData.user.id);
 
         if (profileError) throw profileError;
-      }
 
-      toast({
-        title: "Success",
-        description: `User ${mode === 'edit' ? 'updated' : 'created'} successfully!`,
-      });
+        toast({
+          title: "Success",
+          description: "User created successfully!",
+        });
 
-      if (onSuccess) {
-        onSuccess();
-      }
-
-      // Reset form if creating
-      if (mode === 'create') {
+        // Reset form
         setFirstName("");
         setLastName("");
         setEmail("");
@@ -133,6 +133,7 @@ const UserForm = ({ initialData, onSuccess, mode = 'create' }: UserFormProps) =>
         setSelectedPosition("");
       }
     } catch (error: any) {
+      console.error("User form error:", error);
       toast({
         title: "Error",
         description: error.message,
