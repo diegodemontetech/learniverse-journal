@@ -23,7 +23,7 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
           .eq("user_id", user.id)
           .order('created_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (error && error.code !== 'PGRST116') {
           console.error("Error loading progress:", error);
