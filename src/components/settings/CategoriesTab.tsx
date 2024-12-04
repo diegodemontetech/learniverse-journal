@@ -19,8 +19,6 @@ const CategoriesTab = () => {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
-
-  // Form state
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
@@ -144,13 +142,13 @@ const CategoriesTab = () => {
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          className="bg-[#272727] border-[#3a3a3a] text-white"
+          className="bg-[#272727] border-[#3a3a3a] text-white placeholder:text-gray-400"
         />
         <Textarea
           placeholder="Descrição"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="bg-[#272727] border-[#3a3a3a] text-white min-h-[100px]"
+          className="bg-[#272727] border-[#3a3a3a] text-white placeholder:text-gray-400 min-h-[100px]"
         />
         <div className="flex gap-2">
           <Button type="submit" className="bg-i2know-accent hover:bg-i2know-accent/90">
@@ -182,8 +180,8 @@ const CategoriesTab = () => {
             <TableBody>
               {categories.map((category) => (
                 <TableRow key={category.id} className="hover:bg-[#272727]">
-                  <TableCell className="text-white">{category.name}</TableCell>
-                  <TableCell className="text-white">{category.description}</TableCell>
+                  <TableCell className="text-white font-medium">{category.name}</TableCell>
+                  <TableCell className="text-gray-300">{category.description}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button
