@@ -1,35 +1,15 @@
-import { useState } from "react";
 import { ThumbsUp, ThumbsDown, Reply } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-
-interface Comment {
-  id: string;
-  content: string;
-  created_at: string;
-  likes_count: number;
-  dislikes_count: number;
-  user: {
-    first_name: string;
-    last_name: string;
-    avatar_url: string;
-  };
-  replies?: Comment[];
-  user_like?: boolean | null;
-}
+import { CommentForm } from "./comments/CommentForm";
+import type { Comment } from "./comments/useComments";
 
 interface CommentItemProps {
   comment: Comment;
   isReply?: boolean;
-  onReply: (parentId: string) => void;
+  onReply: (parentId: string | null) => void;
   onLike: (commentId: string, isLike: boolean) => void;
   replyTo: string | null;
-  replyContent: string;
-  setReplyContent: (content: string) => void;
-  handleReply: (parentId: string) => void;
+  onSubmitReply: (content: string) => void;
 }
 
 export const CommentItem = ({
@@ -38,9 +18,7 @@ export const CommentItem = ({
   onReply,
   onLike,
   replyTo,
-  replyContent,
-  setReplyContent,
-  handleReply,
+  onSubmitReply,
 }: CommentItemProps) => {
   return (
     <div key={comment.id} className={`${isReply ? "ml-12" : "border-t border-[#3a3a3a]"} py-4`}>
@@ -97,26 +75,12 @@ export const CommentItem = ({
           </div>
           {replyTo === comment.id && (
             <div className="mt-4">
-              <Textarea
-                value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
+              <CommentForm
+                onSubmit={onSubmitReply}
                 placeholder="Escreva sua resposta..."
-                className="mb-2 bg-[#272727] border-[#3a3a3a] text-white"
+                submitLabel="Responder"
+                onCancel={() => onReply(null)}
               />
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => onReply(null)}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={() => handleReply(comment.id)}
-                  disabled={!replyContent.trim()}
-                >
-                  Responder
-                </Button>
-              </div>
             </div>
           )}
         </div>
@@ -129,9 +93,7 @@ export const CommentItem = ({
           onReply={onReply}
           onLike={onLike}
           replyTo={replyTo}
-          replyContent={replyContent}
-          setReplyContent={setReplyContent}
-          handleReply={handleReply}
+          onSubmitReply={onSubmitReply}
         />
       ))}
     </div>
