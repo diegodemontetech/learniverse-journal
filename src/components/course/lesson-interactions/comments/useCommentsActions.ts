@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
-import { Toast } from "@/components/ui/use-toast";
+import { ToastProps } from "@/components/ui/toast";
 
-export const useCommentsActions = (lessonId: string, toast: Toast) => {
+export const useCommentsActions = (lessonId: string, toast: { (props: ToastProps): void }) => {
   const addComment = async (content: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();

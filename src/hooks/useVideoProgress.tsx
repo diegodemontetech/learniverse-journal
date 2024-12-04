@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+interface ProgressPayload {
+  new: {
+    progress_percentage: number;
+  } | null;
+}
+
 export const useVideoProgress = (lessonId: string, onProgressChange: (progress: number) => void) => {
   const [progress, setProgress] = useState(0);
 
@@ -44,7 +50,7 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
           table: 'user_progress',
           filter: `lesson_id=eq.${lessonId}`
         },
-        (payload) => {
+        (payload: ProgressPayload) => {
           if (payload.new && typeof payload.new.progress_percentage === 'number') {
             setProgress(payload.new.progress_percentage);
             onProgressChange(payload.new.progress_percentage);
