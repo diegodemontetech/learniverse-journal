@@ -110,7 +110,7 @@ const Ebooks = () => {
           }`}
           onClick={() => setSelectedCategory('all')}
         >
-          All E-books
+          Todos os E-books
         </Button>
         {categories?.map((category) => (
           <Button
