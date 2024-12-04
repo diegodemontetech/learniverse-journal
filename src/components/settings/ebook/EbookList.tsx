@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/table";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import { Ebook } from "@/types/course";
+import { deleteEbook } from "@/utils/deleteHandlers";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface EbookListProps {
   ebooks: Ebook[];
@@ -18,15 +20,27 @@ interface EbookListProps {
 }
 
 const EbookList = ({ ebooks, onEdit, onDelete, onView }: EbookListProps) => {
+  const queryClient = useQueryClient();
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this ebook?")) {
+      const { success } = await deleteEbook(id);
+      if (success) {
+        await queryClient.invalidateQueries({ queryKey: ["ebooks"] });
+        onDelete(id);
+      }
+    }
+  };
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Título</TableHead>
-          <TableHead>Autor</TableHead>
-          <TableHead>Categoria</TableHead>
-          <TableHead>Páginas</TableHead>
-          <TableHead className="text-right">Ações</TableHead>
+          <TableHead>Title</TableHead>
+          <TableHead>Author</TableHead>
+          <TableHead>Category</TableHead>
+          <TableHead>Pages</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -54,7 +68,7 @@ const EbookList = ({ ebooks, onEdit, onDelete, onView }: EbookListProps) => {
               <Button
                 variant="outline"
                 size="icon"
-                onClick={() => onDelete(ebook.id)}
+                onClick={() => handleDelete(ebook.id)}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Pencil, Trash2, Ban } from "lucide-react";
+import { deleteUser } from "@/utils/deleteHandlers";
 
 const UserList = () => {
-  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const queryClient = useQueryClient();
 
@@ -29,31 +28,15 @@ const UserList = () => {
     },
   });
 
-  const deleteUserMutation = useMutation({
-    mutationFn: async (userId: string) => {
-      const { error } = await supabase
-        .from("profiles")
-        .delete()
-        .eq("id", userId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["profiles"] });
-      toast({
-        title: "Sucesso",
-        description: "Usuário excluído com sucesso!",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro",
-        description: "Erro ao excluir usuário. Tente novamente.",
-        variant: "destructive",
-      });
-      console.error("Delete user error:", error);
-    },
-  });
+  const handleDeleteUser = async (userId: string) => {
+    if (window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
+      const { success } = await deleteUser(userId);
+      if (success) {
+        await queryClient.invalidateQueries({ queryKey: ["profiles"] });
+        await refetch();
+      }
+    }
+  };
 
   const filteredUsers = users?.filter(user => 
     user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -63,7 +46,7 @@ const UserList = () => {
   return (
     <div className="space-y-4">
       <Input
-        placeholder="Buscar usuários..."
+        placeholder="Search users..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         className="bg-i2know-body border-none text-white placeholder:text-gray-400"
@@ -73,11 +56,11 @@ const UserList = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Departamento</TableHead>
-              <TableHead>Cargo</TableHead>
-              <TableHead>Grupo</TableHead>
-              <TableHead>Ações</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Department</TableHead>
+              <TableHead>Position</TableHead>
+              <TableHead>Group</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -97,11 +80,7 @@ const UserList = () => {
                   <Button 
                     variant="ghost" 
                     size="icon"
-                    onClick={() => {
-                      if (window.confirm("Tem certeza que deseja excluir este usuário?")) {
-                        deleteUserMutation.mutate(user.id);
-                      }
-                    }}
+                    onClick={() => handleDeleteUser(user.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
