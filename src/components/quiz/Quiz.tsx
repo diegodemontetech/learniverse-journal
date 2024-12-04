@@ -38,6 +38,23 @@ const Quiz = ({ quizId, courseId, onComplete }: QuizProps) => {
     },
   });
 
+  // Verificar se o usuário já completou este quiz
+  const { data: existingAttempt } = useQuery({
+    queryKey: ["quiz_attempt", quizId],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data, error } = await supabase
+        .from("quiz_attempts")
+        .select("*")
+        .eq("quiz_id", quizId)
+        .eq("user_id", user?.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const questions = (quiz?.quiz_questions || []) as any[];
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -60,8 +77,6 @@ const Quiz = ({ quizId, courseId, onComplete }: QuizProps) => {
         correctAnswers++;
       }
     });
-    
-    // Each question has equal weight, total score is 100
     return (correctAnswers / questions.length) * 100;
   };
 
@@ -75,10 +90,26 @@ const Quiz = ({ quizId, courseId, onComplete }: QuizProps) => {
       return;
     }
 
+    if (existingAttempt) {
+      toast({
+        title: "Erro",
+        description: "Você já completou este quiz anteriormente.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     const score = calculateScore();
 
     try {
+      // Verificar se atingiu a nota mínima
+      if (score < (quiz?.passing_score || 50)) {
+        setQuizScore(score);
+        setShowResult(true);
+        return;
+      }
+
       const { error } = await supabase
         .from("quiz_attempts")
         .insert({
@@ -90,6 +121,17 @@ const Quiz = ({ quizId, courseId, onComplete }: QuizProps) => {
         .single();
 
       if (error) throw error;
+
+      // Atualizar o status do curso como concluído
+      await supabase
+        .from("user_progress")
+        .insert({
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          course_id: courseId,
+          lesson_id: null,
+          progress_percentage: 100,
+          completed_at: new Date().toISOString(),
+        });
 
       setQuizScore(score);
       setShowResult(true);
@@ -118,6 +160,17 @@ const Quiz = ({ quizId, courseId, onComplete }: QuizProps) => {
 
   if (!currentQuestion) {
     return <div>Nenhuma questão encontrada.</div>;
+  }
+
+  if (existingAttempt) {
+    return (
+      <div className="p-6 bg-gray-800 rounded-lg">
+        <h3 className="text-xl font-semibold text-white mb-4">Quiz já completado</h3>
+        <p className="text-gray-300">
+          Você já completou este quiz com nota {existingAttempt.score.toFixed(1)}%.
+        </p>
+      </div>
+    );
   }
 
   if (showResult) {

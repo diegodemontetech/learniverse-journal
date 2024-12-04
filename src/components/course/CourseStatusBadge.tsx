@@ -5,9 +5,10 @@ type CourseStatus = "new" | "in_progress" | "completed";
 
 interface CourseStatusBadgeProps {
   status: CourseStatus;
+  progress?: number;
 }
 
-const CourseStatusBadge = ({ status }: CourseStatusBadgeProps) => {
+const CourseStatusBadge = ({ status, progress = 0 }: CourseStatusBadgeProps) => {
   const statusConfig = {
     new: {
       label: "Novo",
@@ -15,7 +16,7 @@ const CourseStatusBadge = ({ status }: CourseStatusBadgeProps) => {
       className: "bg-blue-500 hover:bg-blue-600",
     },
     in_progress: {
-      label: "Em Andamento",
+      label: `${progress}% Completo`,
       icon: Timer,
       className: "bg-yellow-500 hover:bg-yellow-600",
     },

@@ -48,12 +48,13 @@ const QuizResult = ({ score, passingScore, onRetry }: QuizResultProps) => {
             </div>
             {passed ? (
               <p>
-                Você completou o curso com sucesso e ganhou pontos! Continue sua jornada
-                de aprendizado.
+                Você completou o curso com sucesso! Seu certificado foi gerado
+                e você ganhou pontos de experiência.
               </p>
             ) : (
               <p>
-                Não desanime! Você pode tentar novamente para melhorar sua nota.
+                Você não atingiu a nota mínima necessária. Revise o conteúdo
+                e tente novamente.
               </p>
             )}
           </AlertDialogDescription>
@@ -61,9 +62,9 @@ const QuizResult = ({ score, passingScore, onRetry }: QuizResultProps) => {
         <AlertDialogFooter className="gap-2">
           <Button
             variant="outline"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/courses")}
           >
-            Voltar para Home
+            Voltar para Cursos
           </Button>
           {!passed && (
             <Button 
