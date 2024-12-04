@@ -97,6 +97,23 @@ const CategoriesTab = () => {
 
   const handleDelete = async (id: string) => {
     try {
+      // First check if there are any ebooks in this category
+      const { data: ebooks, error: ebooksError } = await supabase
+        .from("ebooks")
+        .select("id")
+        .eq("category_id", id);
+
+      if (ebooksError) throw ebooksError;
+
+      if (ebooks && ebooks.length > 0) {
+        toast({
+          title: "Erro",
+          description: "Não é possível excluir esta categoria pois existem e-books associados a ela.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from("categories")
         .delete()
