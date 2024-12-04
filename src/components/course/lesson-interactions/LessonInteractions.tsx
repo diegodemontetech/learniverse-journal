@@ -1,7 +1,7 @@
 import { LessonRating } from "./LessonRating";
 import { LessonLikes } from "./LessonLikes";
 import { LessonComments } from "./LessonComments";
-import { SupportMaterials } from "@/components/course/SupportMaterials";
+import SupportMaterials from "@/components/course/SupportMaterials";
 
 interface LessonInteractionsProps {
   lessonId: string;

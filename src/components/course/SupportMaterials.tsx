@@ -8,7 +8,7 @@ interface SupportMaterialsProps {
   lessonId?: string;
 }
 
-const SupportMaterials = ({ lessonId }: SupportMaterialsProps) => {
+export const SupportMaterials = ({ lessonId }: SupportMaterialsProps) => {
   const { toast } = useToast();
 
   const { data: materials } = useQuery({

@@ -5,7 +5,6 @@ export interface Comment {
   user_id: string;
   parent_id: string | null;
   likes_count: number;
-  dislikes_count: number;
   user_like?: boolean;
   user?: {
     first_name: string;
