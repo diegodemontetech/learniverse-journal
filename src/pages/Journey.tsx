@@ -15,49 +15,49 @@ interface Level {
 const levels: Level[] = [
   {
     name: "Aprendiz do Saber",
-    points: 100,
+    points: 500, // Era 100
     description: "Início da jornada de aprendizado, descobrindo novos conhecimentos.",
     color: "#4ade80",
     icon: <Award className="w-6 h-6 text-green-400" />,
   },
   {
     name: "Explorador Determinado",
-    points: 300,
+    points: 1500, // Era 300
     description: "Avançando na exploração de diferentes áreas de conhecimento.",
     color: "#60a5fa",
     icon: <Trophy className="w-6 h-6 text-blue-400" />,
   },
   {
     name: "Guardião da Sabedoria",
-    points: 500,
+    points: 2500, // Era 500
     description: "Consolidando conhecimentos e compartilhando com outros.",
     color: "#c084fc",
     icon: <Award className="w-6 h-6 text-purple-400" />,
   },
   {
     name: "Mestre Estrategista",
-    points: 800,
+    points: 4000, // Era 800
     description: "Demonstrando habilidades avançadas e aplicando o aprendizado de forma estratégica.",
     color: "#fbbf24",
     icon: <Trophy className="w-6 h-6 text-yellow-400" />,
   },
   {
     name: "Senhor do Conhecimento",
-    points: 1200,
+    points: 6000, // Era 1200
     description: "Excelência em múltiplas áreas, sendo referência dentro da comunidade de aprendizado.",
     color: "#f87171",
     icon: <Award className="w-6 h-6 text-red-400" />,
   },
   {
     name: "Lendário Mentor",
-    points: 1600,
+    points: 8000, // Era 1600
     description: "Influenciando e guiando outros no caminho do conhecimento.",
     color: "#fbbf24",
     icon: <Trophy className="w-6 h-6 text-yellow-400" />,
   },
   {
     name: "Titã da Sabedoria",
-    points: 2000,
+    points: 10000, // Era 2000
     description: "Nível supremo de conhecimento e contribuição excepcional para a empresa.",
     color: "#ec4899",
     icon: <Award className="w-6 h-6 text-pink-400" />,
