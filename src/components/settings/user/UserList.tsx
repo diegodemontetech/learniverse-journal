@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -29,32 +29,31 @@ const UserList = () => {
     },
   });
 
-  const handleDeleteUser = async (userId: string) => {
-    try {
-      // First delete from profiles table
-      const { error: profileError } = await supabase
-        .from('profiles')
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase
+        .from("profiles")
         .delete()
-        .eq('id', userId);
+        .eq("id", userId);
 
-      if (profileError) throw profileError;
-
-      await queryClient.invalidateQueries({ queryKey: ["profiles"] });
-      await refetch();
-
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
       toast({
         title: "Sucesso",
-        description: "Usuário deletado com sucesso!",
+        description: "Usuário excluído com sucesso!",
       });
-    } catch (error: any) {
-      console.error('Delete user error:', error);
+    },
+    onError: (error: any) => {
       toast({
         title: "Erro",
-        description: error.message || "Erro ao deletar usuário. Tente novamente.",
+        description: "Erro ao excluir usuário. Tente novamente.",
         variant: "destructive",
       });
-    }
-  };
+      console.error("Delete user error:", error);
+    },
+  });
 
   const filteredUsers = users?.filter(user => 
     user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -98,7 +97,11 @@ const UserList = () => {
                   <Button 
                     variant="ghost" 
                     size="icon"
-                    onClick={() => handleDeleteUser(user.id)}
+                    onClick={() => {
+                      if (window.confirm("Tem certeza que deseja excluir este usuário?")) {
+                        deleteUserMutation.mutate(user.id);
+                      }
+                    }}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

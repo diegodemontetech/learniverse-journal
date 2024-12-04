@@ -38,44 +38,6 @@ const Quiz = ({ quizId, courseId, onComplete }: QuizProps) => {
     },
   });
 
-  const { data: userProgress } = useQuery({
-    queryKey: ["course-progress", courseId],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.id) return null;
-
-      const { data, error } = await supabase
-        .from("user_progress")
-        .select("*")
-        .eq("course_id", courseId)
-        .eq("user_id", user.id);
-
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const { data: quizAttempts } = useQuery({
-    queryKey: ["quiz-attempts", quizId],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.id) return null;
-
-      const { data, error } = await supabase
-        .from("quiz_attempts")
-        .select("*")
-        .eq("quiz_id", quizId)
-        .eq("user_id", user.id)
-        .order("completed_at", { ascending: false });
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const hasPassedQuiz = quizAttempts?.some(attempt => attempt.score >= (quiz?.passing_score || 50));
-  const allLessonsViewed = userProgress?.every(progress => progress.progress_percentage === 100);
-
   const questions = (quiz?.quiz_questions || []) as any[];
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -92,37 +54,18 @@ const Quiz = ({ quizId, courseId, onComplete }: QuizProps) => {
   };
 
   const calculateScore = () => {
-    let totalPoints = questions.length * 10; // Each question is worth 10 points
-    let earnedPoints = 0;
-    
+    let correctAnswers = 0;
     questions.forEach(question => {
       if (selectedAnswers[question.id] === question.correct_answer) {
-        earnedPoints += 10;
+        correctAnswers++;
       }
     });
     
-    return (earnedPoints / totalPoints) * 100;
+    // Each question has equal weight, total score is 100
+    return (correctAnswers / questions.length) * 100;
   };
 
   const handleSubmit = async () => {
-    if (!allLessonsViewed) {
-      toast({
-        title: "Atenção",
-        description: "Você precisa assistir todas as aulas antes de fazer a avaliação.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (hasPassedQuiz) {
-      toast({
-        title: "Aviso",
-        description: "Você já completou este quiz com sucesso!",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (Object.keys(selectedAnswers).length < questions.length) {
       toast({
         title: "Erro",
@@ -142,7 +85,9 @@ const Quiz = ({ quizId, courseId, onComplete }: QuizProps) => {
           quiz_id: quizId,
           user_id: (await supabase.auth.getUser()).data.user?.id,
           score: score,
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
