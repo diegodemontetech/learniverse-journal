@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useToast } from "@/components/ui/use-toast";
 
 interface CertificateCardProps {
   certificate: {
@@ -16,14 +17,22 @@ interface CertificateCardProps {
 }
 
 const CertificateCard = ({ certificate }: CertificateCardProps) => {
+  const { toast } = useToast();
+  
   const handleDownload = () => {
     if (certificate.certificate_url) {
       window.open(certificate.certificate_url, '_blank');
+    } else {
+      toast({
+        title: "Erro",
+        description: "Certificado não disponível no momento. Tente novamente mais tarde.",
+        variant: "destructive",
+      });
     }
   };
 
   return (
-    <Card className="p-4 bg-[#1a1717] border-none">
+    <Card className="p-4 bg-[#1a1717] border-none cursor-pointer hover:bg-[#2a2727] transition-colors" onClick={handleDownload}>
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-medium text-white">{certificate.course.title}</h3>
@@ -34,7 +43,6 @@ const CertificateCard = ({ certificate }: CertificateCardProps) => {
         <Button
           variant="outline"
           size="icon"
-          onClick={handleDownload}
           className="h-8 w-8"
         >
           <Download className="h-4 w-4" />

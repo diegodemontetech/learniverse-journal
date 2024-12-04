@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -40,6 +40,13 @@ const CourseView = () => {
     },
     enabled: !!courseId,
   });
+
+  // Auto-select first lesson when course data loads
+  useEffect(() => {
+    if (course?.lessons?.length > 0 && !currentLessonId) {
+      setCurrentLessonId(course.lessons[0].id);
+    }
+  }, [course]);
 
   const handleQuizComplete = () => {
     toast({
@@ -129,6 +136,7 @@ const CourseView = () => {
               <div className="bg-[#272727] rounded-lg p-4 sm:p-5">
                 <Quiz
                   quizId={quiz.id}
+                  courseId={courseId!}
                   onComplete={handleQuizComplete}
                 />
               </div>
