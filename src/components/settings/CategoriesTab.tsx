@@ -97,18 +97,18 @@ const CategoriesTab = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      // First check if there are any ebooks in this category
-      const { data: ebooks, error: ebooksError } = await supabase
-        .from("ebooks")
+      // First check if there are any courses in this category
+      const { data: courses, error: coursesError } = await supabase
+        .from("courses")
         .select("id")
         .eq("category_id", id);
 
-      if (ebooksError) throw ebooksError;
+      if (coursesError) throw coursesError;
 
-      if (ebooks && ebooks.length > 0) {
+      if (courses && courses.length > 0) {
         toast({
           title: "Erro",
-          description: "Não é possível excluir esta categoria pois existem e-books associados a ela.",
+          description: "Não é possível excluir esta categoria pois existem cursos associados a ela.",
           variant: "destructive",
         });
         return;
@@ -138,69 +138,77 @@ const CategoriesTab = () => {
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 bg-[#1a1717] p-4 rounded-lg">
         <Input
           placeholder="Nome da categoria"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
+          className="bg-[#272727] border-[#3a3a3a] text-white"
         />
         <Textarea
           placeholder="Descrição"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          className="bg-[#272727] border-[#3a3a3a] text-white min-h-[100px]"
         />
-        <Button type="submit">
-          {isEditing ? "Atualizar Categoria" : "Criar Categoria"}
-        </Button>
-        {isEditing && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={resetForm}
-            className="ml-2"
-          >
-            Cancelar
+        <div className="flex gap-2">
+          <Button type="submit" className="bg-i2know-accent hover:bg-i2know-accent/90">
+            {isEditing ? "Atualizar Categoria" : "Criar Categoria"}
           </Button>
-        )}
+          {isEditing && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={resetForm}
+              className="bg-[#272727] border-[#3a3a3a] text-white hover:bg-[#3a3a3a]"
+            >
+              Cancelar
+            </Button>
+          )}
+        </div>
       </form>
 
       {categories && categories.length > 0 && (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Descrição</TableHead>
-              <TableHead>Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {categories.map((category) => (
-              <TableRow key={category.id}>
-                <TableCell>{category.name}</TableCell>
-                <TableCell>{category.description}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(category)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(category.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+        <div className="bg-[#1a1717] rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-[#272727]">
+                <TableHead className="text-white">Nome</TableHead>
+                <TableHead className="text-white">Descrição</TableHead>
+                <TableHead className="text-white">Ações</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {categories.map((category) => (
+                <TableRow key={category.id} className="hover:bg-[#272727]">
+                  <TableCell className="text-white">{category.name}</TableCell>
+                  <TableCell className="text-white">{category.description}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(category)}
+                        className="hover:bg-[#3a3a3a]"
+                      >
+                        <Pencil className="h-4 w-4 text-white" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(category.id)}
+                        className="hover:bg-[#3a3a3a]"
+                      >
+                        <Trash2 className="h-4 w-4 text-white" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </div>
   );

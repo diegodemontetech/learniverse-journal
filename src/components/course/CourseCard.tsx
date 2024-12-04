@@ -53,18 +53,49 @@ const CourseCard = ({ course, onCourseClick }: CourseCardProps) => {
     },
   });
 
+  const { data: progress } = useQuery({
+    queryKey: ["course_progress", course.id],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data: lessons } = await supabase
+        .from("lessons")
+        .select("id")
+        .eq("course_id", course.id);
+
+      if (!lessons || lessons.length === 0) return null;
+
+      const { data: completedLessons } = await supabase
+        .from("user_progress")
+        .select("*")
+        .eq("course_id", course.id)
+        .eq("user_id", user.id)
+        .gte("progress_percentage", 100);
+
+      if (!completedLessons) return 0;
+
+      return (completedLessons.length / lessons.length) * 100;
+    },
+  });
+
+  let status: "new" | "in_progress" | "completed" = "new";
+  if (certificate) {
+    status = "completed";
+  } else if (progress && progress > 0) {
+    status = "in_progress";
+  }
+
   return (
     <div
       className="group cursor-pointer relative"
       onClick={() => onCourseClick(course.id)}
     >
       <div className="relative aspect-[2/3] rounded-lg overflow-hidden mb-3">
-        {course.status && (
-          <CourseStatusBadge 
-            status={course.status} 
-            progress={course.user_progress?.[0]?.progress_percentage || 0}
-          />
-        )}
+        <CourseStatusBadge 
+          status={status}
+          progress={progress || 0}
+        />
         <img
           src={course.thumbnail_url || "/placeholder.svg"}
           alt={course.title}
@@ -83,7 +114,7 @@ const CourseCard = ({ course, onCourseClick }: CourseCardProps) => {
             <div className="flex items-center gap-2 text-white">
               <Eye className="w-4 h-4" />
               <span className="text-sm">
-                {quizAttempt ? 'Ver certificado' : 'Acessar curso'}
+                {progress && progress > 0 ? `${Math.round(progress)}% Completo` : 'Acessar curso'}
               </span>
             </div>
           )}
