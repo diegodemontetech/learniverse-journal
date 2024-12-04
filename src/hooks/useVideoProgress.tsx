@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 
-interface ProgressPayload {
-  new: {
-    progress_percentage: number;
-  } | null;
+interface ProgressUpdate {
+  progress_percentage: number;
 }
 
 export const useVideoProgress = (lessonId: string, onProgressChange: (progress: number) => void) => {
@@ -25,7 +24,7 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
           .limit(1)
           .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') {
+        if (error) {
           console.error("Error loading progress:", error);
           return;
         }
@@ -40,17 +39,16 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
     };
 
     // Subscribe to realtime changes
-    const channel = supabase
-      .channel('user_progress_changes')
+    const channel = supabase.channel('progress_changes')
       .on(
-        'postgres_changes',
+        'postgres_changes' as const,
         {
           event: '*',
           schema: 'public',
           table: 'user_progress',
           filter: `lesson_id=eq.${lessonId}`
         },
-        (payload: ProgressPayload) => {
+        (payload: RealtimePostgresChangesPayload<ProgressUpdate>) => {
           if (payload.new && typeof payload.new.progress_percentage === 'number') {
             setProgress(payload.new.progress_percentage);
             onProgressChange(payload.new.progress_percentage);
