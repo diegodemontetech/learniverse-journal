@@ -16,6 +16,7 @@ export interface Course {
     progress_percentage: number;
   }>;
   status?: 'new' | 'in_progress' | 'completed';
+  is_active?: boolean;
 }
 
 export interface Ebook {

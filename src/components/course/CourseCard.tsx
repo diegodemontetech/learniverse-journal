@@ -65,15 +65,16 @@ const CourseCard = ({ course, onCourseClick }: CourseCardProps) => {
 
       if (!lessons || lessons.length === 0) return null;
 
-      const { count: completedLessons } = await supabase
+      // Get all completed lessons for this course
+      const { data: userProgress } = await supabase
         .from("user_progress")
-        .select("*", { count: 'exact', head: true })
+        .select("*")
         .eq("course_id", course.id)
         .eq("user_id", user.id)
         .gte("progress_percentage", 100);
 
-      if (completedLessons === null) return 0;
-      return (completedLessons / lessons.length) * 100;
+      if (!userProgress) return 0;
+      return (userProgress.length / lessons.length) * 100;
     },
   });
 
