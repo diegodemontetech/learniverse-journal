@@ -6,9 +6,14 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Pencil, Trash2, Ban } from "lucide-react";
 import { deleteUser } from "@/utils/deleteHandlers";
+import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import UserForm from "./UserForm";
 
 const UserList = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  const [editingUser, setEditingUser] = useState<any>(null);
   const queryClient = useQueryClient();
 
   const { data: users, refetch } = useQuery({
@@ -30,12 +35,44 @@ const UserList = () => {
 
   const handleDeleteUser = async (userId: string) => {
     if (window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
-      const { success } = await deleteUser(userId);
-      if (success) {
+      try {
+        // First delete from auth.users which will cascade to profiles
+        const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+        if (authError) throw authError;
+
+        // Delete from profiles table
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .delete()
+          .eq("id", userId);
+          
+        if (profileError) throw profileError;
+
+        toast({
+          title: "Success",
+          description: "User deleted successfully",
+        });
+
         await queryClient.invalidateQueries({ queryKey: ["profiles"] });
         await refetch();
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
       }
     }
+  };
+
+  const handleEditSuccess = async () => {
+    setEditingUser(null);
+    await queryClient.invalidateQueries({ queryKey: ["profiles"] });
+    await refetch();
+    toast({
+      title: "Success",
+      description: "User updated successfully",
+    });
   };
 
   const filteredUsers = users?.filter(user => 
@@ -71,7 +108,11 @@ const UserList = () => {
                 <TableCell>{user.positions?.name}</TableCell>
                 <TableCell>{user.user_groups?.name}</TableCell>
                 <TableCell className="space-x-2">
-                  <Button variant="ghost" size="icon">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => setEditingUser(user)}
+                  >
                     <Pencil className="h-4 w-4" />
                   </Button>
                   <Button variant="ghost" size="icon">
@@ -90,6 +131,21 @@ const UserList = () => {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
+        <DialogContent className="bg-i2know-card border-none">
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+          </DialogHeader>
+          {editingUser && (
+            <UserForm 
+              initialData={editingUser}
+              onSuccess={handleEditSuccess}
+              mode="edit"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

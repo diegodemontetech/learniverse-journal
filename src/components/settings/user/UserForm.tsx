@@ -9,16 +9,22 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus } from "lucide-react";
 
-const UserForm = () => {
+interface UserFormProps {
+  initialData?: any;
+  onSuccess?: () => void;
+  mode?: 'create' | 'edit';
+}
+
+const UserForm = ({ initialData, onSuccess, mode = 'create' }: UserFormProps) => {
   const { toast } = useToast();
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState(initialData?.first_name || "");
+  const [lastName, setLastName] = useState(initialData?.last_name || "");
+  const [email, setEmail] = useState(initialData?.email || "");
   const [password, setPassword] = useState("");
-  const [selectedRole, setSelectedRole] = useState("user");
-  const [selectedGroup, setSelectedGroup] = useState("");
-  const [selectedDepartment, setSelectedDepartment] = useState("");
-  const [selectedPosition, setSelectedPosition] = useState("");
+  const [selectedRole, setSelectedRole] = useState(initialData?.role || "user");
+  const [selectedGroup, setSelectedGroup] = useState(initialData?.group_id || "");
+  const [selectedDepartment, setSelectedDepartment] = useState(initialData?.department_id || "");
+  const [selectedPosition, setSelectedPosition] = useState(initialData?.position_id || "");
 
   const { data: groups } = useQuery({
     queryKey: ["user-groups"],
@@ -47,65 +53,89 @@ const UserForm = () => {
     },
   });
 
-  const handleCreateUser = async () => {
-    if (!email || !password || !firstName || !lastName || !selectedRole) {
-      toast({
-        title: "Erro",
-        description: "Email, senha, nome, sobrenome e tipo de usuário são obrigatórios",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (selectedRole === "user" && !selectedGroup) {
-      toast({
-        title: "Erro",
-        description: "Grupo de usuário é obrigatório para usuários comuns",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleSubmit = async () => {
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+      if (mode === 'edit') {
+        // Update profile
+        const { error: updateError } = await supabase
+          .from("profiles")
+          .update({
+            first_name: firstName,
+            last_name: lastName,
+            role: selectedRole,
+            group_id: selectedRole === "admin" ? null : selectedGroup,
+            department_id: selectedDepartment,
+            position_id: selectedPosition,
+          })
+          .eq("id", initialData.id);
 
-      if (authError) throw authError;
+        if (updateError) throw updateError;
+      } else {
+        // Create new user
+        if (!email || !password || !firstName || !lastName || !selectedRole) {
+          toast({
+            title: "Error",
+            description: "All required fields must be filled",
+            variant: "destructive",
+          });
+          return;
+        }
 
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          first_name: firstName,
-          last_name: lastName,
-          group_id: selectedRole === "admin" ? null : selectedGroup,
-          department_id: selectedDepartment,
-          position_id: selectedPosition,
-          role: selectedRole,
-        })
-        .eq("id", authData.user?.id);
+        if (selectedRole === "user" && !selectedGroup) {
+          toast({
+            title: "Error",
+            description: "User group is required for regular users",
+            variant: "destructive",
+          });
+          return;
+        }
 
-      if (profileError) throw profileError;
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+
+        if (authError) throw authError;
+
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update({
+            first_name: firstName,
+            last_name: lastName,
+            group_id: selectedRole === "admin" ? null : selectedGroup,
+            department_id: selectedDepartment,
+            position_id: selectedPosition,
+            role: selectedRole,
+          })
+          .eq("id", authData.user?.id);
+
+        if (profileError) throw profileError;
+      }
 
       toast({
-        title: "Sucesso",
-        description: "Usuário criado com sucesso!",
+        title: "Success",
+        description: `User ${mode === 'edit' ? 'updated' : 'created'} successfully!`,
       });
 
-      // Reset form
-      setFirstName("");
-      setLastName("");
-      setEmail("");
-      setPassword("");
-      setSelectedRole("user");
-      setSelectedGroup("");
-      setSelectedDepartment("");
-      setSelectedPosition("");
-    } catch (error) {
+      if (onSuccess) {
+        onSuccess();
+      }
+
+      // Reset form if creating
+      if (mode === 'create') {
+        setFirstName("");
+        setLastName("");
+        setEmail("");
+        setPassword("");
+        setSelectedRole("user");
+        setSelectedGroup("");
+        setSelectedDepartment("");
+        setSelectedPosition("");
+      }
+    } catch (error: any) {
       toast({
-        title: "Erro",
-        description: "Erro ao criar usuário. Tente novamente.",
+        title: "Error",
+        description: error.message,
         variant: "destructive",
       });
     }
@@ -113,83 +143,89 @@ const UserForm = () => {
 
   return (
     <Card className="bg-i2know-card border-none">
-      <CardHeader>
-        <CardTitle>Criar Novo Usuário</CardTitle>
-      </CardHeader>
+      {mode === 'create' && (
+        <CardHeader>
+          <CardTitle>Create New User</CardTitle>
+        </CardHeader>
+      )}
       <CardContent className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="firstName">Nome</Label>
+            <Label htmlFor="firstName">First Name</Label>
             <Input
               id="firstName"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Digite o nome"
+              placeholder="Enter first name"
               className="bg-i2know-body border-none text-white placeholder:text-gray-400"
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="lastName">Sobrenome</Label>
+            <Label htmlFor="lastName">Last Name</Label>
             <Input
               id="lastName"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              placeholder="Digite o sobrenome"
+              placeholder="Enter last name"
               className="bg-i2know-body border-none text-white placeholder:text-gray-400"
             />
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Digite o email"
-            className="bg-i2know-body border-none text-white placeholder:text-gray-400"
-          />
-        </div>
+        {mode === 'create' && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter email"
+                className="bg-i2know-body border-none text-white placeholder:text-gray-400"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter password"
+                className="bg-i2know-body border-none text-white placeholder:text-gray-400"
+              />
+            </div>
+          </>
+        )}
 
         <div className="space-y-2">
-          <Label htmlFor="password">Senha</Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Digite a senha"
-            className="bg-i2know-body border-none text-white placeholder:text-gray-400"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label>Tipo de Usuário</Label>
+          <Label>User Type</Label>
           <Select
             value={selectedRole}
             onValueChange={setSelectedRole}
           >
             <SelectTrigger className="bg-i2know-body border-none text-white">
-              <SelectValue placeholder="Selecione o tipo de usuário" />
+              <SelectValue placeholder="Select user type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="user">Usuário</SelectItem>
-              <SelectItem value="admin">Administrador</SelectItem>
+              <SelectItem value="user">User</SelectItem>
+              <SelectItem value="admin">Administrator</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         {selectedRole === "user" && (
           <div className="space-y-2">
-            <Label>Grupo de Usuário</Label>
+            <Label>User Group</Label>
             <Select
               value={selectedGroup}
               onValueChange={setSelectedGroup}
             >
               <SelectTrigger className="bg-i2know-body border-none text-white">
-                <SelectValue placeholder="Selecione um grupo" />
+                <SelectValue placeholder="Select a group" />
               </SelectTrigger>
               <SelectContent>
                 {groups?.map((group) => (
@@ -203,13 +239,13 @@ const UserForm = () => {
         )}
 
         <div className="space-y-2">
-          <Label>Departamento</Label>
+          <Label>Department</Label>
           <Select
             value={selectedDepartment}
             onValueChange={setSelectedDepartment}
           >
             <SelectTrigger className="bg-i2know-body border-none text-white">
-              <SelectValue placeholder="Selecione um departamento" />
+              <SelectValue placeholder="Select a department" />
             </SelectTrigger>
             <SelectContent>
               {departments?.map((department) => (
@@ -222,13 +258,13 @@ const UserForm = () => {
         </div>
 
         <div className="space-y-2">
-          <Label>Cargo</Label>
+          <Label>Position</Label>
           <Select
             value={selectedPosition}
             onValueChange={setSelectedPosition}
           >
             <SelectTrigger className="bg-i2know-body border-none text-white">
-              <SelectValue placeholder="Selecione um cargo" />
+              <SelectValue placeholder="Select a position" />
             </SelectTrigger>
             <SelectContent>
               {positions?.map((position) => (
@@ -241,11 +277,11 @@ const UserForm = () => {
         </div>
 
         <Button 
-          onClick={handleCreateUser}
+          onClick={handleSubmit}
           className="w-full bg-i2know-accent hover:bg-opacity-90"
         >
-          <Plus className="w-4 h-4 mr-2" />
-          Criar Usuário
+          {mode === 'create' && <Plus className="w-4 h-4 mr-2" />}
+          {mode === 'create' ? 'Create User' : 'Save Changes'}
         </Button>
       </CardContent>
     </Card>
