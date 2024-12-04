@@ -17,18 +17,17 @@ const CourseCard = ({ course, onCourseClick }: CourseCardProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      const { data: quiz } = await supabase
+      const { data: quizzes } = await supabase
         .from("quizzes")
         .select("id")
-        .eq("course_id", course.id)
-        .single();
+        .eq("course_id", course.id);
 
-      if (!quiz) return null;
+      if (!quizzes || quizzes.length === 0) return null;
 
       const { data } = await supabase
         .from("quiz_attempts")
         .select("*")
-        .eq("quiz_id", quiz.id)
+        .eq("quiz_id", quizzes[0].id)
         .eq("user_id", user.id)
         .maybeSingle();
 
