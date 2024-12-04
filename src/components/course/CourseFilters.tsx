@@ -38,10 +38,11 @@ const CourseFilters = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3 mb-8 overflow-x-auto pb-4">
+      {/* Category filters with horizontal scroll */}
+      <div className="flex items-center gap-3 mb-8 overflow-x-auto pb-4 scrollbar-none">
         <Button
           variant={selectedCategory === 'all' ? 'default' : 'secondary'}
-          className={`rounded-full px-12 py-2.5 h-10 flex items-center justify-center whitespace-nowrap ${
+          className={`rounded-full px-6 sm:px-12 py-2.5 h-10 flex items-center justify-center whitespace-nowrap min-w-fit ${
             selectedCategory === 'all' 
               ? 'bg-red-600 hover:bg-red-700' 
               : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
@@ -54,7 +55,7 @@ const CourseFilters = ({
           <Button
             key={category.id}
             variant={selectedCategory === category.id ? 'default' : 'secondary'}
-            className={`rounded-full px-12 py-2.5 h-10 flex items-center justify-center whitespace-nowrap ${
+            className={`rounded-full px-6 sm:px-12 py-2.5 h-10 flex items-center justify-center whitespace-nowrap min-w-fit ${
               selectedCategory === category.id 
                 ? 'bg-red-600 hover:bg-red-700' 
                 : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
@@ -66,10 +67,11 @@ const CourseFilters = ({
         ))}
       </div>
 
-      <div className="flex items-center gap-3 mb-8">
+      {/* Status filters with better mobile layout */}
+      <div className="flex items-center gap-2 sm:gap-3 mb-8 overflow-x-auto pb-4 scrollbar-none">
         <Button
           variant={statusFilter === 'all' ? 'default' : 'secondary'}
-          className={`rounded-full px-6 py-2 h-9 flex items-center gap-2 ${
+          className={`rounded-full px-4 sm:px-6 py-2 h-9 flex items-center gap-1 sm:gap-2 min-w-fit ${
             statusFilter === 'all' 
               ? 'bg-red-600 hover:bg-red-700' 
               : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
@@ -80,39 +82,39 @@ const CourseFilters = ({
         </Button>
         <Button
           variant={statusFilter === 'new' ? 'default' : 'secondary'}
-          className={`rounded-full px-6 py-2 h-9 flex items-center gap-2 ${
+          className={`rounded-full px-4 sm:px-6 py-2 h-9 flex items-center gap-1 sm:gap-2 min-w-fit ${
             statusFilter === 'new' 
               ? 'bg-blue-500 hover:bg-blue-600' 
               : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
           }`}
           onClick={() => setStatusFilter('new')}
         >
-          <Sparkles className="w-4 h-4" />
-          Novos
+          <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
+          <span className="whitespace-nowrap">Novos</span>
         </Button>
         <Button
           variant={statusFilter === 'in_progress' ? 'default' : 'secondary'}
-          className={`rounded-full px-6 py-2 h-9 flex items-center gap-2 ${
+          className={`rounded-full px-4 sm:px-6 py-2 h-9 flex items-center gap-1 sm:gap-2 min-w-fit ${
             statusFilter === 'in_progress' 
               ? 'bg-yellow-500 hover:bg-yellow-600' 
               : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
           }`}
           onClick={() => setStatusFilter('in_progress')}
         >
-          <Timer className="w-4 h-4" />
-          Em Andamento
+          <Timer className="w-3 h-3 sm:w-4 sm:h-4" />
+          <span className="whitespace-nowrap">Em Andamento</span>
         </Button>
         <Button
           variant={statusFilter === 'completed' ? 'default' : 'secondary'}
-          className={`rounded-full px-6 py-2 h-9 flex items-center gap-2 ${
+          className={`rounded-full px-4 sm:px-6 py-2 h-9 flex items-center gap-1 sm:gap-2 min-w-fit ${
             statusFilter === 'completed' 
               ? 'bg-green-500 hover:bg-green-600' 
               : 'bg-[#2C2C2C] text-white hover:bg-[#3C3C3C]'
           }`}
           onClick={() => setStatusFilter('completed')}
         >
-          <Trophy className="w-4 h-4" />
-          Concluídos
+          <Trophy className="w-3 h-3 sm:w-4 sm:h-4" />
+          <span className="whitespace-nowrap">Concluídos</span>
         </Button>
       </div>
     </div>
