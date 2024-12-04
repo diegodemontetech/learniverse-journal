@@ -11,6 +11,7 @@ interface News {
   id: string;
   title: string;
   content: string;
+  preview_content: string;
   thumbnail_url: string | null;
   main_image_url: string | null;
   video_url: string | null;
