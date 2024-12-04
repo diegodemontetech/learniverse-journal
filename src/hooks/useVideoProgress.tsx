@@ -15,6 +15,8 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
           .select("progress_percentage")
           .eq("lesson_id", lessonId)
           .eq("user_id", user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
           .single();
 
         if (error && error.code !== 'PGRST116') {
@@ -43,7 +45,7 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
           filter: `lesson_id=eq.${lessonId}`
         },
         (payload) => {
-          if (payload.new) {
+          if (payload.new && typeof payload.new.progress_percentage === 'number') {
             setProgress(payload.new.progress_percentage);
             onProgressChange(payload.new.progress_percentage);
           }
