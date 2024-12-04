@@ -24,7 +24,6 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange, onNextLesson }: Vid
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const { progress, updateProgress } = useVideoProgress(lesson.id, onProgressChange);
   const { toast } = useToast();
-  const [hasAutoAdvanced, setHasAutoAdvanced] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
 
   useEffect(() => {
@@ -37,7 +36,7 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange, onNextLesson }: Vid
           .createSignedUrl(lesson.video_file_path, 3600);
 
         if (error) {
-          console.error("Erro ao criar URL assinada:", error);
+          console.error("Error creating signed URL:", error);
           toast({
             title: "Erro",
             description: "Não foi possível carregar o vídeo. Tente novamente.",
@@ -48,7 +47,7 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange, onNextLesson }: Vid
 
         setVideoUrl(signedUrl);
       } catch (error) {
-        console.error("Erro ao carregar vídeo:", error);
+        console.error("Error loading video:", error);
         toast({
           title: "Erro",
           description: "Não foi possível carregar o vídeo. Tente novamente.",
@@ -58,7 +57,6 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange, onNextLesson }: Vid
     };
 
     loadVideo();
-    setHasAutoAdvanced(false);
     setIsCompleting(false);
   }, [lesson]);
 
@@ -72,12 +70,12 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange, onNextLesson }: Vid
     try {
       await updateProgress(newProgress);
     } catch (error) {
-      console.error("Erro ao atualizar progresso:", error);
+      console.error("Error updating progress:", error);
     }
   };
 
   const handleVideoEnd = async () => {
-    if (!hasAutoAdvanced && !isCompleting) {
+    if (!isCompleting) {
       setIsCompleting(true);
       try {
         await onComplete(lesson.id);
@@ -90,7 +88,7 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange, onNextLesson }: Vid
           onNextLesson();
         }
       } catch (error) {
-        console.error("Erro ao completar aula:", error);
+        console.error("Error completing lesson:", error);
         toast({
           title: "Erro",
           description: "Não foi possível marcar a aula como concluída. Tente novamente.",
@@ -98,7 +96,6 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange, onNextLesson }: Vid
         });
       } finally {
         setIsCompleting(false);
-        setHasAutoAdvanced(true);
       }
     }
   };

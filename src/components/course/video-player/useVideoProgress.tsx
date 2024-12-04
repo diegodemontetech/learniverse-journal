@@ -14,17 +14,16 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
           .from("user_progress")
           .select("progress_percentage")
           .eq("lesson_id", lessonId)
-          .eq("user_id", user.id);
+          .eq("user_id", user.id)
+          .single();
 
-        if (error) {
+        if (error && error.code !== 'PGRST116') {
           console.error("Error loading progress:", error);
           return;
         }
 
-        // Get the highest progress percentage
-        if (progressData && progressData.length > 0) {
-          const maxProgress = Math.max(...progressData.map(p => p.progress_percentage || 0));
-          setProgress(maxProgress);
+        if (progressData?.progress_percentage) {
+          setProgress(progressData.progress_percentage);
         }
       } catch (error) {
         console.error("Error loading progress:", error);
@@ -39,7 +38,6 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.id) return;
 
-      // Get the course_id for the lesson
       const { data: lessonData } = await supabase
         .from("lessons")
         .select("course_id")
@@ -51,7 +49,6 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
         return;
       }
 
-      // Use upsert operation
       const { error } = await supabase
         .from("user_progress")
         .upsert({
@@ -60,9 +57,6 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
           course_id: lessonData.course_id,
           progress_percentage: newProgress,
           completed_at: newProgress >= 100 ? new Date().toISOString() : null
-        }, {
-          onConflict: 'user_id,course_id,lesson_id',
-          ignoreDuplicates: false
         });
 
       if (error) {
