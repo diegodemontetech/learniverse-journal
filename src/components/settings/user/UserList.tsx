@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Table,
   TableBody,
@@ -7,8 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,13 +20,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-const UserList = () => {
-  const [isDeleting, setIsDeleting] = useState(false);
+interface UserListProps {
+  onEdit: (user: any) => void;
+}
+
+const UserList = ({ onEdit }: UserListProps) => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["users"],
@@ -42,7 +46,7 @@ const UserList = () => {
     },
   });
 
-  const handleDeleteUser = async (userId: string) => {
+  const handleDelete = async (userId: string) => {
     try {
       setIsDeleting(true);
 
@@ -54,18 +58,15 @@ const UserList = () => {
 
       if (profileError) throw profileError;
 
-      // Invalidate and refetch users query
-      await queryClient.invalidateQueries({ queryKey: ["users"] });
-
       toast({
-        title: "Sucesso",
-        description: "Usuário excluído com sucesso",
+        title: "Success",
+        description: "User deleted successfully",
       });
-    } catch (error) {
-      console.error("Delete user error:", error);
+    } catch (error: any) {
+      console.error("Error deleting user:", error);
       toast({
-        title: "Erro",
-        description: "Não foi possível excluir o usuário",
+        title: "Error",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -74,66 +75,71 @@ const UserList = () => {
   };
 
   if (isLoading) {
-    return <div>Carregando...</div>;
+    return <div>Loading...</div>;
   }
 
   return (
-    <div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Nome</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Função</TableHead>
-            <TableHead>Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {users?.map((user) => (
-            <TableRow key={user.id}>
-              <TableCell>
-                {user.first_name} {user.last_name}
-              </TableCell>
-              <TableCell>{(user as any).auth_user?.email}</TableCell>
-              <TableCell>{user.role}</TableCell>
-              <TableCell>
-                <AlertDialog>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Name</TableHead>
+          <TableHead>Email</TableHead>
+          <TableHead>Role</TableHead>
+          <TableHead>Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {users?.map((user) => (
+          <TableRow key={user.id}>
+            <TableCell>
+              {user.first_name} {user.last_name}
+            </TableCell>
+            <TableCell>{(user as any).auth_user?.email}</TableCell>
+            <TableCell>{user.role}</TableCell>
+            <TableCell>
+              <AlertDialog>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onEdit(user)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
                   <AlertDialogTrigger asChild>
                     <Button
-                      variant="destructive"
-                      size="sm"
+                      variant="ghost"
+                      size="icon"
                       disabled={isDeleting}
                     >
-                      Excluir
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Tem certeza que deseja excluir este usuário?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Esta ação não pode ser desfeita. Todos os dados do usuário
-                        serão permanentemente excluídos.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleDeleteUser(user.id)}
-                        disabled={isDeleting}
-                      >
-                        {isDeleting ? "Excluindo..." : "Excluir"}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+                </div>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete the
+                      user and all associated data.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => handleDelete(user.id)}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? "Deleting..." : "Delete"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 };
 
