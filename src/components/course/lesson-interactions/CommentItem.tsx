@@ -1,7 +1,7 @@
 import { ThumbsUp, ThumbsDown, Reply } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CommentForm } from "./comments/CommentForm";
-import type { Comment } from "./comments/useComments";
+import type { Comment } from "./comments/types";
 
 interface CommentItemProps {
   comment: Comment;

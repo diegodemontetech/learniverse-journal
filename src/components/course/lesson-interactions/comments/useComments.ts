@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useCommentsSubscription } from "./useCommentsSubscription";
 import { useCommentsActions } from "./useCommentsActions";
-import { Comment } from "./types";
+import type { Comment } from "./types";
 
 export const useComments = (lessonId: string) => {
   const [comments, setComments] = useState<Comment[]>([]);
