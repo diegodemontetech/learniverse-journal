@@ -40,10 +40,10 @@ const QuizResult = ({ score, passingScore, onRetry }: QuizResultProps) => {
           <AlertDialogDescription className="space-y-4">
             <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
               <p className="text-lg font-semibold">
-                Sua nota: {score.toFixed(1)}%
+                Sua nota: {(score / 10).toFixed(1)}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Nota mínima necessária: {passingScore}%
+                Nota mínima necessária: {(passingScore / 10).toFixed(1)}
               </p>
             </div>
             {passed ? (
