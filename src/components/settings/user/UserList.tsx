@@ -31,13 +31,14 @@ const UserList = () => {
   const { data: users, isLoading } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Get profiles with auth user data
+      const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("*")
+        .select("*, auth_user:id(email)")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (profilesError) throw profilesError;
+      return profiles;
     },
   });
 
@@ -45,7 +46,7 @@ const UserList = () => {
     try {
       setIsDeleting(true);
 
-      // Delete user's profile first (this will cascade to related records due to RLS)
+      // Delete user's profile (this will cascade to related records due to RLS)
       const { error: profileError } = await supabase
         .from("profiles")
         .delete()
@@ -93,7 +94,7 @@ const UserList = () => {
               <TableCell>
                 {user.first_name} {user.last_name}
               </TableCell>
-              <TableCell>{user.email}</TableCell>
+              <TableCell>{(user as any).auth_user?.email}</TableCell>
               <TableCell>{user.role}</TableCell>
               <TableCell>
                 <AlertDialog>
