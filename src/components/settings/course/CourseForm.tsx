@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/components/ui/use-toast";
 
 interface CourseFormProps {
   course?: any;
@@ -12,6 +13,7 @@ interface CourseFormProps {
 }
 
 const CourseForm = ({ course, onSuccess }: CourseFormProps) => {
+  const { toast } = useToast();
   const { register, handleSubmit, formState: { isSubmitting } } = useForm({
     defaultValues: {
       title: course?.title || "",
@@ -36,20 +38,45 @@ const CourseForm = ({ course, onSuccess }: CourseFormProps) => {
   const onSubmit = async (data: any) => {
     try {
       if (course) {
+        // Update existing course
         const { error } = await supabase
           .from("courses")
-          .update(data)
+          .update({
+            title: data.title,
+            description: data.description,
+            instructor: data.instructor,
+            duration: data.duration,
+            category_id: data.category_id,
+          })
           .eq("id", course.id);
+
         if (error) throw error;
+        
+        toast({
+          title: "Success",
+          description: "Course updated successfully",
+        });
       } else {
+        // Create new course
         const { error } = await supabase
           .from("courses")
           .insert([data]);
+
         if (error) throw error;
+        
+        toast({
+          title: "Success",
+          description: "Course created successfully",
+        });
       }
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving course:", error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 

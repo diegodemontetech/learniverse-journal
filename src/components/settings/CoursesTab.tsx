@@ -32,6 +32,13 @@ const CoursesTab = () => {
     },
   });
 
+  const handleSuccess = () => {
+    setIsAddDialogOpen(false);
+    setIsEditDialogOpen(false);
+    setSelectedCourse(null);
+    refetchCourses();
+  };
+
   const openEditDialog = (course: any) => {
     setSelectedCourse(course);
     setIsEditDialogOpen(true);
@@ -52,12 +59,7 @@ const CoursesTab = () => {
             <DialogHeader>
               <DialogTitle>Add New Course</DialogTitle>
             </DialogHeader>
-            <CourseForm
-              onSuccess={() => {
-                setIsAddDialogOpen(false);
-                refetchCourses();
-              }}
-            />
+            <CourseForm onSuccess={handleSuccess} />
           </DialogContent>
         </Dialog>
       </div>
@@ -74,11 +76,7 @@ const CoursesTab = () => {
           </DialogHeader>
           <CourseForm
             course={selectedCourse}
-            onSuccess={() => {
-              setIsEditDialogOpen(false);
-              setSelectedCourse(null);
-              refetchCourses();
-            }}
+            onSuccess={handleSuccess}
           />
         </DialogContent>
       </Dialog>

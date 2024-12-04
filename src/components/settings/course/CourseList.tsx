@@ -6,8 +6,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Pencil, Trash2 } from "lucide-react";
-import { deleteCourse } from "@/utils/deleteHandlers";
+import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/components/ui/use-toast";
 
 interface CourseListProps {
   courses: any[];
@@ -16,12 +17,31 @@ interface CourseListProps {
 
 const CourseList = ({ courses, onEdit }: CourseListProps) => {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const handleDelete = async (courseId: string) => {
     if (window.confirm("Are you sure you want to delete this course?")) {
-      const { success } = await deleteCourse(courseId);
-      if (success) {
+      try {
+        const { error } = await supabase
+          .from("courses")
+          .delete()
+          .eq("id", courseId);
+
+        if (error) throw error;
+
         await queryClient.invalidateQueries({ queryKey: ["courses"] });
+        
+        toast({
+          title: "Success",
+          description: "Course deleted successfully",
+        });
+      } catch (error: any) {
+        console.error("Error deleting course:", error);
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
       }
     }
   };
