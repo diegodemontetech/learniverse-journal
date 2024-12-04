@@ -31,19 +31,26 @@ const UserList = () => {
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      const { error } = await supabase.auth.admin.deleteUser(userId);
-      if (error) throw error;
+      // First delete from profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', userId);
+
+      if (profileError) throw profileError;
 
       await queryClient.invalidateQueries({ queryKey: ["profiles"] });
+      await refetch();
 
       toast({
         title: "Sucesso",
         description: "Usuário deletado com sucesso!",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Delete user error:', error);
       toast({
         title: "Erro",
-        description: "Erro ao deletar usuário. Tente novamente.",
+        description: error.message || "Erro ao deletar usuário. Tente novamente.",
         variant: "destructive",
       });
     }
