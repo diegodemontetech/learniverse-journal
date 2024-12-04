@@ -22,6 +22,99 @@ const CourseList = ({ courses, onEdit }: CourseListProps) => {
   const handleDelete = async (courseId: string) => {
     if (window.confirm("Are you sure you want to delete this course?")) {
       try {
+        // First delete related records
+        const deleteRelatedRecords = async () => {
+          // Delete user progress
+          await supabase
+            .from("user_progress")
+            .delete()
+            .eq("course_id", courseId);
+
+          // Delete certificates
+          await supabase
+            .from("certificates")
+            .delete()
+            .eq("course_id", courseId);
+
+          // Delete quizzes and related records
+          const { data: quizzes } = await supabase
+            .from("quizzes")
+            .select("id")
+            .eq("course_id", courseId);
+
+          if (quizzes) {
+            for (const quiz of quizzes) {
+              // Delete quiz attempts
+              await supabase
+                .from("quiz_attempts")
+                .delete()
+                .eq("quiz_id", quiz.id);
+
+              // Delete quiz questions
+              await supabase
+                .from("quiz_questions")
+                .delete()
+                .eq("quiz_id", quiz.id);
+            }
+
+            // Delete quizzes
+            await supabase
+              .from("quizzes")
+              .delete()
+              .eq("course_id", courseId);
+          }
+
+          // Delete position courses
+          await supabase
+            .from("position_courses")
+            .delete()
+            .eq("course_id", courseId);
+
+          // Delete lessons and related records
+          const { data: lessons } = await supabase
+            .from("lessons")
+            .select("id")
+            .eq("course_id", courseId);
+
+          if (lessons) {
+            for (const lesson of lessons) {
+              // Delete lesson comments
+              await supabase
+                .from("lesson_comments")
+                .delete()
+                .eq("lesson_id", lesson.id);
+
+              // Delete lesson likes
+              await supabase
+                .from("lesson_likes")
+                .delete()
+                .eq("lesson_id", lesson.id);
+
+              // Delete lesson ratings
+              await supabase
+                .from("lesson_ratings")
+                .delete()
+                .eq("lesson_id", lesson.id);
+
+              // Delete support materials
+              await supabase
+                .from("support_materials")
+                .delete()
+                .eq("lesson_id", lesson.id);
+            }
+
+            // Delete lessons
+            await supabase
+              .from("lessons")
+              .delete()
+              .eq("course_id", courseId);
+          }
+        };
+
+        // Delete related records first
+        await deleteRelatedRecords();
+
+        // Finally delete the course
         const { error } = await supabase
           .from("courses")
           .delete()
@@ -39,7 +132,7 @@ const CourseList = ({ courses, onEdit }: CourseListProps) => {
         console.error("Error deleting course:", error);
         toast({
           title: "Error",
-          description: error.message,
+          description: error.message || "Failed to delete course",
           variant: "destructive",
         });
       }
