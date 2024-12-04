@@ -7,9 +7,15 @@ interface CourseGridProps {
   courses?: Course[];
   isLoading: boolean;
   onCourseClick?: (courseId: string) => void;
+  showInactive?: boolean;
 }
 
-const CourseGrid = ({ courses, isLoading, onCourseClick }: CourseGridProps) => {
+const CourseGrid = ({ 
+  courses, 
+  isLoading, 
+  onCourseClick,
+  showInactive = false 
+}: CourseGridProps) => {
   const navigate = useNavigate();
 
   const handleCourseClick = (courseId: string) => {
@@ -19,6 +25,10 @@ const CourseGrid = ({ courses, isLoading, onCourseClick }: CourseGridProps) => {
       navigate(`/courses/${courseId}`);
     }
   };
+
+  const filteredCourses = courses?.filter(course => 
+    showInactive ? true : course.is_active !== false
+  );
 
   if (isLoading) {
     return (
@@ -34,7 +44,7 @@ const CourseGrid = ({ courses, isLoading, onCourseClick }: CourseGridProps) => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 sm:gap-6 mt-6 sm:mt-12">
-      {courses?.map((course) => (
+      {filteredCourses?.map((course) => (
         <CourseCard
           key={course.id}
           course={course}
