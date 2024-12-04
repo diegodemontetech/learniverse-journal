@@ -6,9 +6,11 @@ export interface Comment {
   parent_id: string | null;
   likes_count: number;
   dislikes_count: number;
+  user_like?: boolean;
   user?: {
     first_name: string;
     last_name: string;
     avatar_url: string | null;
   };
+  replies?: Comment[];
 }

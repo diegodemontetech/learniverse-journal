@@ -49,9 +49,10 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
           filter: `lesson_id=eq.${lessonId}`
         },
         (payload: RealtimePostgresChangesPayload<ProgressUpdate>) => {
-          if (payload.new && typeof payload.new.progress_percentage === 'number') {
-            setProgress(payload.new.progress_percentage);
-            onProgressChange(payload.new.progress_percentage);
+          const newProgress = payload.new as ProgressUpdate;
+          if (newProgress && typeof newProgress.progress_percentage === 'number') {
+            setProgress(newProgress.progress_percentage);
+            onProgressChange(newProgress.progress_percentage);
           }
         }
       )
