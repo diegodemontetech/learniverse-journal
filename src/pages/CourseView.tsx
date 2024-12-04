@@ -7,6 +7,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import CourseHeader from "@/components/course/CourseHeader";
 import VideoPlayer from "@/components/course/VideoPlayer";
 import LessonList from "@/components/course/LessonList";
+import { LessonInteractions } from "@/components/course/lesson-interactions/LessonInteractions";
 import Quiz from "@/components/quiz/Quiz";
 import { useCourseData } from "@/hooks/useCourseData";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -41,7 +42,6 @@ const CourseView = () => {
     enabled: !!courseId,
   });
 
-  // Auto-select first lesson when course data loads
   useEffect(() => {
     if (course?.lessons?.length > 0 && !currentLessonId) {
       setCurrentLessonId(course.lessons[0].id);
@@ -112,6 +112,9 @@ const CourseView = () => {
                       {currentLesson.description}
                     </p>
                   </div>
+                  {currentLessonId && (
+                    <LessonInteractions lessonId={currentLessonId} />
+                  )}
                 </>
               )}
               {quiz && (
