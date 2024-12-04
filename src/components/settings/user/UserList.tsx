@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Table,
@@ -31,11 +31,11 @@ interface UserListProps {
 const UserList = ({ onEdit }: UserListProps) => {
   const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
+  const queryClient = useQueryClient();
 
-  const { data: users, isLoading } = useQuery({
+  const { data: users, isLoading, error } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      // Get profiles with auth user data using a different join syntax
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select(`
@@ -55,7 +55,6 @@ const UserList = ({ onEdit }: UserListProps) => {
     try {
       setIsDeleting(true);
 
-      // Delete user's profile (this will cascade to related records due to RLS)
       const { error: profileError } = await supabase
         .from("profiles")
         .delete()
@@ -67,6 +66,9 @@ const UserList = ({ onEdit }: UserListProps) => {
         title: "Success",
         description: "User deleted successfully",
       });
+
+      // Refresh the users list
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     } catch (error: any) {
       console.error("Error deleting user:", error);
       toast({
@@ -79,8 +81,20 @@ const UserList = ({ onEdit }: UserListProps) => {
     }
   };
 
+  if (error) {
+    return (
+      <div className="p-4 text-red-500">
+        Error loading users: {(error as Error).message}
+      </div>
+    );
+  }
+
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div className="p-4">Loading users...</div>;
+  }
+
+  if (!users?.length) {
+    return <div className="p-4">No users found.</div>;
   }
 
   return (
@@ -94,7 +108,7 @@ const UserList = ({ onEdit }: UserListProps) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {users?.map((user) => (
+        {users.map((user) => (
           <TableRow key={user.id}>
             <TableCell>
               {user.first_name} {user.last_name}

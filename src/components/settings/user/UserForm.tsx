@@ -2,12 +2,10 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus } from "lucide-react";
+import UserFormFields from "./form/UserFormFields";
 
 interface UserFormProps {
   initialData?: any;
@@ -70,6 +68,11 @@ const UserForm = ({ initialData, onSuccess, mode = 'create' }: UserFormProps) =>
 
         if (updateError) throw updateError;
 
+        toast({
+          title: "Success",
+          description: "User updated successfully!",
+        });
+
         if (onSuccess) {
           onSuccess();
         }
@@ -92,12 +95,38 @@ const UserForm = ({ initialData, onSuccess, mode = 'create' }: UserFormProps) =>
           return;
         }
 
+        // First check if user exists
+        const { data: existingUser } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', email)
+          .single();
+
+        if (existingUser) {
+          toast({
+            title: "Error",
+            description: "A user with this email already exists",
+            variant: "destructive",
+          });
+          return;
+        }
+
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password,
         });
 
-        if (authError) throw authError;
+        if (authError) {
+          if (authError.message.includes('already registered')) {
+            toast({
+              title: "Error",
+              description: "A user with this email already exists",
+              variant: "destructive",
+            });
+            return;
+          }
+          throw authError;
+        }
 
         if (!authData.user?.id) {
           throw new Error("Failed to create user");
@@ -131,6 +160,10 @@ const UserForm = ({ initialData, onSuccess, mode = 'create' }: UserFormProps) =>
         setSelectedGroup("");
         setSelectedDepartment("");
         setSelectedPosition("");
+
+        if (onSuccess) {
+          onSuccess();
+        }
       }
     } catch (error: any) {
       console.error("User form error:", error);
@@ -150,132 +183,28 @@ const UserForm = ({ initialData, onSuccess, mode = 'create' }: UserFormProps) =>
         </CardHeader>
       )}
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="firstName">First Name</Label>
-            <Input
-              id="firstName"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Enter first name"
-              className="bg-i2know-body border-none text-white placeholder:text-gray-400"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="lastName">Last Name</Label>
-            <Input
-              id="lastName"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Enter last name"
-              className="bg-i2know-body border-none text-white placeholder:text-gray-400"
-            />
-          </div>
-        </div>
-
-        {mode === 'create' && (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter email"
-                className="bg-i2know-body border-none text-white placeholder:text-gray-400"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
-                className="bg-i2know-body border-none text-white placeholder:text-gray-400"
-              />
-            </div>
-          </>
-        )}
-
-        <div className="space-y-2">
-          <Label>User Type</Label>
-          <Select
-            value={selectedRole}
-            onValueChange={setSelectedRole}
-          >
-            <SelectTrigger className="bg-i2know-body border-none text-white">
-              <SelectValue placeholder="Select user type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="user">User</SelectItem>
-              <SelectItem value="admin">Administrator</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {selectedRole === "user" && (
-          <div className="space-y-2">
-            <Label>User Group</Label>
-            <Select
-              value={selectedGroup}
-              onValueChange={setSelectedGroup}
-            >
-              <SelectTrigger className="bg-i2know-body border-none text-white">
-                <SelectValue placeholder="Select a group" />
-              </SelectTrigger>
-              <SelectContent>
-                {groups?.map((group) => (
-                  <SelectItem key={group.id} value={group.id}>
-                    {group.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        <div className="space-y-2">
-          <Label>Department</Label>
-          <Select
-            value={selectedDepartment}
-            onValueChange={setSelectedDepartment}
-          >
-            <SelectTrigger className="bg-i2know-body border-none text-white">
-              <SelectValue placeholder="Select a department" />
-            </SelectTrigger>
-            <SelectContent>
-              {departments?.map((department) => (
-                <SelectItem key={department.id} value={department.id}>
-                  {department.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Position</Label>
-          <Select
-            value={selectedPosition}
-            onValueChange={setSelectedPosition}
-          >
-            <SelectTrigger className="bg-i2know-body border-none text-white">
-              <SelectValue placeholder="Select a position" />
-            </SelectTrigger>
-            <SelectContent>
-              {positions?.map((position) => (
-                <SelectItem key={position.id} value={position.id}>
-                  {position.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <UserFormFields
+          mode={mode}
+          firstName={firstName}
+          setFirstName={setFirstName}
+          lastName={lastName}
+          setLastName={setLastName}
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          selectedRole={selectedRole}
+          setSelectedRole={setSelectedRole}
+          selectedGroup={selectedGroup}
+          setSelectedGroup={setSelectedGroup}
+          selectedDepartment={selectedDepartment}
+          setSelectedDepartment={setSelectedDepartment}
+          selectedPosition={selectedPosition}
+          setSelectedPosition={setSelectedPosition}
+          groups={groups}
+          departments={departments}
+          positions={positions}
+        />
 
         <Button 
           onClick={handleSubmit}
