@@ -48,8 +48,7 @@ const Quiz = ({ quizId, courseId, onComplete }: QuizProps) => {
         .from("user_progress")
         .select("*")
         .eq("course_id", courseId)
-        .eq("user_id", user.id)
-        .order('created_at', { ascending: false });
+        .eq("user_id", user.id);
 
       if (error) throw error;
       return data || [];
@@ -93,13 +92,12 @@ const Quiz = ({ quizId, courseId, onComplete }: QuizProps) => {
   };
 
   const calculateScore = () => {
-    let totalPoints = 0;
+    let totalPoints = questions.length * 10; // Each question is worth 10 points
     let earnedPoints = 0;
     
     questions.forEach(question => {
-      totalPoints += question.points;
       if (selectedAnswers[question.id] === question.correct_answer) {
-        earnedPoints += question.points;
+        earnedPoints += 10;
       }
     });
     
@@ -144,19 +142,9 @@ const Quiz = ({ quizId, courseId, onComplete }: QuizProps) => {
           quiz_id: quizId,
           user_id: (await supabase.auth.getUser()).data.user?.id,
           score: score,
-          completed_at: new Date().toISOString(),
         });
 
       if (error) throw error;
-
-      // Update course status if passed
-      if (score >= (quiz?.passing_score || 50)) {
-        await supabase
-          .from("user_progress")
-          .update({ progress_percentage: 100 })
-          .eq("course_id", courseId)
-          .eq("user_id", (await supabase.auth.getUser()).data.user?.id);
-      }
 
       setQuizScore(score);
       setShowResult(true);

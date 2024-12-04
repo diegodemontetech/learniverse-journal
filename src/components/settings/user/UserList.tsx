@@ -1,13 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -17,6 +10,7 @@ import { Pencil, Trash2, Ban } from "lucide-react";
 const UserList = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  const queryClient = useQueryClient();
 
   const { data: users, refetch } = useQuery({
     queryKey: ["profiles"],
@@ -37,18 +31,15 @@ const UserList = () => {
 
   const handleDeleteUser = async (userId: string) => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userId);
-
+      const { error } = await supabase.auth.admin.deleteUser(userId);
       if (error) throw error;
+
+      await queryClient.invalidateQueries({ queryKey: ["profiles"] });
 
       toast({
         title: "Sucesso",
         description: "Usuário deletado com sucesso!",
       });
-      refetch();
     } catch (error) {
       toast({
         title: "Erro",
@@ -69,7 +60,7 @@ const UserList = () => {
         placeholder="Buscar usuários..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="bg-i2know-body border-none text-white"
+        className="bg-i2know-body border-none text-white placeholder:text-gray-400"
       />
       
       <div className="rounded-md border border-i2know-card">

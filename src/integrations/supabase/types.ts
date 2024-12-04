@@ -1095,6 +1095,7 @@ export type Database = {
         Row: {
           completed_at: string | null
           course_id: string | null
+          created_at: string | null
           id: string
           lesson_id: string | null
           progress_percentage: number | null
@@ -1103,6 +1104,7 @@ export type Database = {
         Insert: {
           completed_at?: string | null
           course_id?: string | null
+          created_at?: string | null
           id?: string
           lesson_id?: string | null
           progress_percentage?: number | null
@@ -1111,6 +1113,7 @@ export type Database = {
         Update: {
           completed_at?: string | null
           course_id?: string | null
+          created_at?: string | null
           id?: string
           lesson_id?: string | null
           progress_percentage?: number | null

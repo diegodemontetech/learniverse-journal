@@ -1,11 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { 
-  Card, 
-  CardHeader, 
-  CardTitle, 
-  CardContent 
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,17 +15,15 @@ const UserForm = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [selectedRole, setSelectedRole] = useState("user");
   const [selectedGroup, setSelectedGroup] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("");
   const [selectedPosition, setSelectedPosition] = useState("");
-  const [selectedRole, setSelectedRole] = useState("user");
 
   const { data: groups } = useQuery({
     queryKey: ["user-groups"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_groups")
-        .select("*");
+      const { data, error } = await supabase.from("user_groups").select("*");
       if (error) throw error;
       return data;
     },
@@ -39,9 +32,7 @@ const UserForm = () => {
   const { data: departments } = useQuery({
     queryKey: ["departments"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("departments")
-        .select("*");
+      const { data, error } = await supabase.from("departments").select("*");
       if (error) throw error;
       return data;
     },
@@ -50,19 +41,26 @@ const UserForm = () => {
   const { data: positions } = useQuery({
     queryKey: ["positions"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("positions")
-        .select("*");
+      const { data, error } = await supabase.from("positions").select("*");
       if (error) throw error;
       return data;
     },
   });
 
   const handleCreateUser = async () => {
-    if (!email || !password || !firstName || !lastName || !selectedGroup || !selectedDepartment || !selectedPosition || !selectedRole) {
+    if (!email || !password || !firstName || !lastName || !selectedRole) {
       toast({
         title: "Erro",
-        description: "Todos os campos são obrigatórios",
+        description: "Email, senha, nome, sobrenome e tipo de usuário são obrigatórios",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedRole === "user" && !selectedGroup) {
+      toast({
+        title: "Erro",
+        description: "Grupo de usuário é obrigatório para usuários comuns",
         variant: "destructive",
       });
       return;
@@ -81,7 +79,7 @@ const UserForm = () => {
         .update({
           first_name: firstName,
           last_name: lastName,
-          group_id: selectedGroup,
+          group_id: selectedRole === "admin" ? null : selectedGroup,
           department_id: selectedDepartment,
           position_id: selectedPosition,
           role: selectedRole,
@@ -100,10 +98,10 @@ const UserForm = () => {
       setLastName("");
       setEmail("");
       setPassword("");
+      setSelectedRole("user");
       setSelectedGroup("");
       setSelectedDepartment("");
       setSelectedPosition("");
-      setSelectedRole("user");
     } catch (error) {
       toast({
         title: "Erro",
@@ -127,7 +125,7 @@ const UserForm = () => {
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               placeholder="Digite o nome"
-              className="bg-i2know-body border-none text-white"
+              className="bg-i2know-body border-none text-white placeholder:text-gray-400"
             />
           </div>
           
@@ -138,7 +136,7 @@ const UserForm = () => {
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               placeholder="Digite o sobrenome"
-              className="bg-i2know-body border-none text-white"
+              className="bg-i2know-body border-none text-white placeholder:text-gray-400"
             />
           </div>
         </div>
@@ -151,7 +149,7 @@ const UserForm = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Digite o email"
-            className="bg-i2know-body border-none text-white"
+            className="bg-i2know-body border-none text-white placeholder:text-gray-400"
           />
         </div>
 
@@ -163,9 +161,46 @@ const UserForm = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Digite a senha"
-            className="bg-i2know-body border-none text-white"
+            className="bg-i2know-body border-none text-white placeholder:text-gray-400"
           />
         </div>
+
+        <div className="space-y-2">
+          <Label>Tipo de Usuário</Label>
+          <Select
+            value={selectedRole}
+            onValueChange={setSelectedRole}
+          >
+            <SelectTrigger className="bg-i2know-body border-none text-white">
+              <SelectValue placeholder="Selecione o tipo de usuário" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="user">Usuário</SelectItem>
+              <SelectItem value="admin">Administrador</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {selectedRole === "user" && (
+          <div className="space-y-2">
+            <Label>Grupo de Usuário</Label>
+            <Select
+              value={selectedGroup}
+              onValueChange={setSelectedGroup}
+            >
+              <SelectTrigger className="bg-i2know-body border-none text-white">
+                <SelectValue placeholder="Selecione um grupo" />
+              </SelectTrigger>
+              <SelectContent>
+                {groups?.map((group) => (
+                  <SelectItem key={group.id} value={group.id}>
+                    {group.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label>Departamento</Label>
@@ -201,41 +236,6 @@ const UserForm = () => {
                   {position.name}
                 </SelectItem>
               ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Grupo de Usuário</Label>
-          <Select
-            value={selectedGroup}
-            onValueChange={setSelectedGroup}
-          >
-            <SelectTrigger className="bg-i2know-body border-none text-white">
-              <SelectValue placeholder="Selecione um grupo" />
-            </SelectTrigger>
-            <SelectContent>
-              {groups?.map((group) => (
-                <SelectItem key={group.id} value={group.id}>
-                  {group.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Tipo de Usuário</Label>
-          <Select
-            value={selectedRole}
-            onValueChange={setSelectedRole}
-          >
-            <SelectTrigger className="bg-i2know-body border-none text-white">
-              <SelectValue placeholder="Selecione o tipo de usuário" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="user">Usuário</SelectItem>
-              <SelectItem value="admin">Administrador</SelectItem>
             </SelectContent>
           </Select>
         </div>
