@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface NewsFormData {
   title: string;
   content: string;
+  preview_content: string;
   thumbnail_url: string;
   main_image_url: string;
   video_url: string;
@@ -26,6 +27,7 @@ const NewsForm = ({ initialData, onSubmit, isEditing = false }: NewsFormProps) =
     initialData || {
       title: "",
       content: "",
+      preview_content: "",
       thumbnail_url: "",
       main_image_url: "",
       video_url: "",
@@ -54,14 +56,30 @@ const NewsForm = ({ initialData, onSubmit, isEditing = false }: NewsFormProps) =
       </div>
       
       <div>
+        <label htmlFor="preview_content" className="text-sm font-medium">
+          Prévia do Conteúdo (Resumo)
+        </label>
+        <Textarea
+          id="preview_content"
+          value={formData.preview_content}
+          onChange={(e) => setFormData({ ...formData, preview_content: e.target.value })}
+          required
+          placeholder="Digite um breve resumo da notícia..."
+          className="h-24"
+        />
+      </div>
+
+      <div>
         <label htmlFor="content" className="text-sm font-medium">
-          Conteúdo
+          Conteúdo Completo
         </label>
         <Textarea
           id="content"
           value={formData.content}
           onChange={(e) => setFormData({ ...formData, content: e.target.value })}
           required
+          placeholder="Digite o conteúdo completo da notícia..."
+          className="h-48"
         />
       </div>
       

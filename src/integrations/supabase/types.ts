@@ -559,6 +559,7 @@ export type Database = {
           is_featured: boolean | null
           layout_position: string | null
           main_image_url: string | null
+          preview_content: string | null
           thumbnail_url: string | null
           title: string
           updated_at: string
@@ -574,6 +575,7 @@ export type Database = {
           is_featured?: boolean | null
           layout_position?: string | null
           main_image_url?: string | null
+          preview_content?: string | null
           thumbnail_url?: string | null
           title: string
           updated_at?: string
@@ -589,6 +591,7 @@ export type Database = {
           is_featured?: boolean | null
           layout_position?: string | null
           main_image_url?: string | null
+          preview_content?: string | null
           thumbnail_url?: string | null
           title?: string
           updated_at?: string

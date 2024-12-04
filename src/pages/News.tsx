@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Bookmark, User, Calendar } from "lucide-react";
@@ -9,6 +10,7 @@ interface NewsArticle {
   id: string;
   title: string;
   content: string;
+  preview_content: string;
   thumbnail_url: string;
   created_at: string;
   author: {
@@ -17,38 +19,45 @@ interface NewsArticle {
   };
 }
 
-const NewsCard = ({ article }: { article: NewsArticle }) => (
-  <Card className="bg-i2know-card hover:bg-i2know-card/90 transition-colors overflow-hidden group">
-    <div className="relative aspect-video overflow-hidden">
-      <img
-        src={article.thumbnail_url}
-        alt={article.title}
-        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-      />
-    </div>
-    <CardHeader className="space-y-2">
-      <h3 className="text-base sm:text-lg font-bold text-i2know-text-primary line-clamp-2">
-        {article.title}
-      </h3>
-      <p className="text-sm sm:text-base text-i2know-text-secondary line-clamp-2">
-        {article.content}
-      </p>
-    </CardHeader>
-    <CardFooter className="flex flex-wrap gap-2 sm:gap-4 text-i2know-text-secondary text-xs sm:text-sm">
-      <div className="flex items-center gap-1 sm:gap-2">
-        <User className="w-3 h-3 sm:w-4 sm:h-4" />
-        <span>{article.author?.first_name || "Anônimo"}</span>
+const NewsCard = ({ article }: { article: NewsArticle }) => {
+  const navigate = useNavigate();
+
+  return (
+    <Card 
+      className="bg-i2know-card hover:bg-i2know-card/90 transition-colors overflow-hidden group cursor-pointer"
+      onClick={() => navigate(`/news/${article.id}`)}
+    >
+      <div className="relative aspect-video overflow-hidden">
+        <img
+          src={article.thumbnail_url}
+          alt={article.title}
+          className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+        />
       </div>
-      <div className="flex items-center gap-1 sm:gap-2">
-        <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-        <span>{format(new Date(article.created_at), "dd/MM/yyyy")}</span>
-      </div>
-      <button className="text-i2know-text-secondary hover:text-i2know-accent transition-colors ml-auto">
-        <Bookmark className="w-3 h-3 sm:w-4 sm:h-4" />
-      </button>
-    </CardFooter>
-  </Card>
-);
+      <CardHeader className="space-y-2">
+        <h3 className="text-base sm:text-lg font-bold text-i2know-text-primary line-clamp-2">
+          {article.title}
+        </h3>
+        <p className="text-sm sm:text-base text-i2know-text-secondary line-clamp-2">
+          {article.preview_content || article.content}
+        </p>
+      </CardHeader>
+      <CardFooter className="flex flex-wrap gap-2 sm:gap-4 text-i2know-text-secondary text-xs sm:text-sm">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <User className="w-3 h-3 sm:w-4 sm:h-4" />
+          <span>{article.author?.first_name || "Anônimo"}</span>
+        </div>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+          <span>{format(new Date(article.created_at), "dd/MM/yyyy")}</span>
+        </div>
+        <button className="text-i2know-text-secondary hover:text-i2know-accent transition-colors ml-auto">
+          <Bookmark className="w-3 h-3 sm:w-4 sm:h-4" />
+        </button>
+      </CardFooter>
+    </Card>
+  );
+};
 
 const NewsCardSkeleton = () => (
   <Card className="bg-i2know-card overflow-hidden">
