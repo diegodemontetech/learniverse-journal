@@ -15,7 +15,9 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
           .select("progress_percentage")
           .eq("lesson_id", lessonId)
           .eq("user_id", user.id)
-          .single();
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
         if (error && error.code !== 'PGRST116') {
           console.error("Error loading progress:", error);
@@ -50,22 +52,17 @@ export const useVideoProgress = (lessonId: string, onProgressChange: (progress: 
         return;
       }
 
-      // Use upsert instead of insert to handle duplicate records
       const { error } = await supabase
         .from("user_progress")
-        .upsert(
-          {
-            user_id: user.id,
-            lesson_id: lessonId,
-            course_id: lessonData.course_id,
-            progress_percentage: newProgress,
-            completed_at: newProgress >= 100 ? new Date().toISOString() : null
-          },
-          {
-            onConflict: 'user_id,course_id,lesson_id',
-            ignoreDuplicates: false
-          }
-        );
+        .insert({
+          user_id: user.id,
+          lesson_id: lessonId,
+          course_id: lessonData.course_id,
+          progress_percentage: newProgress,
+          completed_at: newProgress >= 100 ? new Date().toISOString() : null
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error("Error updating progress:", error);
