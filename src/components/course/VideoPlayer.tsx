@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import VideoControls from "./video-player/VideoControls";
-import CompletionBadge from "./video-player/CompletionBadge";
-import { useVideoProgress } from "./video-player/useVideoProgress";
 import { useToast } from "@/components/ui/use-toast";
 
 interface VideoPlayerProps {
@@ -12,19 +10,15 @@ interface VideoPlayerProps {
     youtube_url: string | null;
     title: string;
   };
-  onComplete: (lessonId: string) => void;
-  onProgressChange: (progress: number) => void;
-  onNextLesson?: () => void;
 }
 
-const VideoPlayer = ({ lesson, onComplete, onProgressChange, onNextLesson }: VideoPlayerProps) => {
+const VideoPlayer = ({ lesson }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const { progress, updateProgress } = useVideoProgress(lesson.id, onProgressChange);
+  const [progress, setProgress] = useState(0);
   const { toast } = useToast();
-  const [isCompleting, setIsCompleting] = useState(false);
 
   useEffect(() => {
     const loadVideo = async () => {
@@ -57,47 +51,14 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange, onNextLesson }: Vid
     };
 
     loadVideo();
-    setIsCompleting(false);
   }, [lesson]);
 
-  const handleTimeUpdate = async () => {
+  const handleTimeUpdate = () => {
     if (!videoRef.current) return;
-
     const duration = videoRef.current.duration;
     const currentTime = videoRef.current.currentTime;
     const newProgress = Math.round((currentTime / duration) * 100);
-    
-    try {
-      await updateProgress(newProgress);
-    } catch (error) {
-      console.error("Error updating progress:", error);
-    }
-  };
-
-  const handleVideoEnd = async () => {
-    if (!isCompleting) {
-      setIsCompleting(true);
-      try {
-        await onComplete(lesson.id);
-        toast({
-          title: "Aula concluída!",
-          description: "Você ganhou +10 pontos",
-        });
-
-        if (onNextLesson) {
-          onNextLesson();
-        }
-      } catch (error) {
-        console.error("Error completing lesson:", error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível marcar a aula como concluída. Tente novamente.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsCompleting(false);
-      }
-    }
+    setProgress(newProgress);
   };
 
   const togglePlay = () => {
@@ -131,13 +92,11 @@ const VideoPlayer = ({ lesson, onComplete, onProgressChange, onNextLesson }: Vid
 
   return (
     <div className="relative aspect-video bg-black">
-      <CompletionBadge isCompleted={progress >= 100} />
       <video
         ref={videoRef}
         src={videoUrl}
         className="w-full h-full"
         onTimeUpdate={handleTimeUpdate}
-        onEnded={handleVideoEnd}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onContextMenu={handleContextMenu}

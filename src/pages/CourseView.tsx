@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -8,21 +7,40 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import CourseHeader from "@/components/course/CourseHeader";
 import VideoPlayer from "@/components/course/VideoPlayer";
 import LessonList from "@/components/course/LessonList";
-import SupportMaterials from "@/components/course/SupportMaterials";
+import Quiz from "@/components/quiz/Quiz";
 import { useCourseData } from "@/hooks/useCourseData";
 import { LessonInteractions } from "@/components/course/lesson-interactions/LessonInteractions";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const CourseView = () => {
   const { id: courseId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
-  const [videoProgress, setVideoProgress] = useState(0);
   const [isLessonListVisible, setIsLessonListVisible] = useState(true);
+  const [showQuiz, setShowQuiz] = useState(false);
   const isMobile = useIsMobile();
 
   const { data: course, isLoading: isLoadingCourse, error } = useCourseData(courseId);
+
+  const { data: quiz } = useQuery({
+    queryKey: ["quiz", courseId],
+    queryFn: async () => {
+      if (!courseId) return null;
+      
+      const { data, error } = await supabase
+        .from("quizzes")
+        .select("*")
+        .eq("course_id", courseId)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!courseId,
+  });
 
   useEffect(() => {
     if (course?.lessons?.[0]) {
@@ -30,59 +48,12 @@ const CourseView = () => {
     }
   }, [course]);
 
-  const handleLessonComplete = async (lessonId: string) => {
-    if (!courseId) return;
-    
-    if (videoProgress < 80) {
-      toast({
-        title: "Assista mais do vídeo",
-        description: "Por favor, assista pelo menos 80% do vídeo para marcá-lo como concluído.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.id) throw new Error("User not authenticated");
-
-      const { error: progressError } = await supabase
-        .from("user_progress")
-        .upsert({
-          user_id: user.id,
-          course_id: courseId,
-          lesson_id: lessonId,
-          completed_at: new Date().toISOString(),
-        });
-
-      if (progressError) throw progressError;
-
-      toast({
-        title: "Sucesso",
-        description: "Aula concluída! +10 pontos",
-      });
-
-      // Move to next lesson if available
-      const currentIndex = course?.lessons?.findIndex(lesson => lesson.id === lessonId);
-      if (currentIndex !== undefined && currentIndex < (course?.lessons?.length || 0) - 1) {
-        setCurrentLessonId(course?.lessons?.[currentIndex + 1].id);
-      }
-    } catch (error) {
-      console.error("Error updating progress:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível atualizar o progresso. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const calculateProgress = () => {
-    if (!course?.lessons) return 0;
-    const completedLessons = course.lessons.filter(
-      (lesson) => lesson.user_progress?.some(progress => progress.completed_at)
-    ).length;
-    return Math.round((completedLessons / course.lessons.length) * 100);
+  const handleQuizComplete = () => {
+    toast({
+      title: "Parabéns!",
+      description: "Você completou o curso e ganhou pontos!",
+    });
+    navigate("/journey");
   };
 
   if (isLoadingCourse) {
@@ -121,37 +92,55 @@ const CourseView = () => {
       <CourseHeader 
         title={course.title}
         description={course.description || ""}
-        progress={calculateProgress()}
+        progress={0}
       />
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-5">
         <div className="lg:col-span-3 space-y-4 sm:space-y-5">
-          {currentLesson ? (
+          {!showQuiz ? (
             <>
-              <div>
-                <VideoPlayer
-                  lesson={currentLesson}
-                  onComplete={handleLessonComplete}
-                  onProgressChange={setVideoProgress}
-                />
-              </div>
-              <div className="bg-[#272727] rounded-lg p-4 sm:p-5">
-                <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">
-                  {currentLesson.title}
-                </h2>
-                <p className="text-sm sm:text-base text-white/80">
-                  {currentLesson.description}
-                </p>
-              </div>
-              <LessonInteractions lessonId={currentLesson.id} />
-              <div className="bg-[#272727] rounded-lg p-4 sm:p-5">
-                <SupportMaterials lessonId={currentLesson.id} />
-              </div>
+              {currentLesson && (
+                <>
+                  <div>
+                    <VideoPlayer lesson={currentLesson} />
+                  </div>
+                  <div className="bg-[#272727] rounded-lg p-4 sm:p-5">
+                    <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">
+                      {currentLesson.title}
+                    </h2>
+                    <p className="text-sm sm:text-base text-white/80">
+                      {currentLesson.description}
+                    </p>
+                  </div>
+                  <LessonInteractions lessonId={currentLesson.id} />
+                </>
+              )}
+              {quiz && (
+                <div className="bg-[#272727] rounded-lg p-4 sm:p-5">
+                  <h2 className="text-lg sm:text-xl font-bold text-white mb-3">
+                    Avaliação do Curso
+                  </h2>
+                  <p className="text-sm text-white/80 mb-4">
+                    Faça a avaliação para concluir o curso e receber seu certificado.
+                  </p>
+                  <Button 
+                    onClick={() => setShowQuiz(true)}
+                    className="w-full bg-i2know-accent hover:bg-i2know-accent/90"
+                  >
+                    Iniciar Avaliação
+                  </Button>
+                </div>
+              )}
             </>
           ) : (
-            <div className="bg-[#272727] rounded-lg p-4 sm:p-6 text-center">
-              <p className="text-white">Nenhuma aula selecionada</p>
-            </div>
+            quiz && (
+              <div className="bg-[#272727] rounded-lg p-4 sm:p-5">
+                <Quiz
+                  quizId={quiz.id}
+                  onComplete={handleQuizComplete}
+                />
+              </div>
+            )
           )}
         </div>
         
