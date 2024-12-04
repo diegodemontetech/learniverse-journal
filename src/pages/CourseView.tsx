@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,7 +9,6 @@ import VideoPlayer from "@/components/course/VideoPlayer";
 import LessonList from "@/components/course/LessonList";
 import Quiz from "@/components/quiz/Quiz";
 import { useCourseData } from "@/hooks/useCourseData";
-import { LessonInteractions } from "@/components/course/lesson-interactions/LessonInteractions";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,12 +40,6 @@ const CourseView = () => {
     },
     enabled: !!courseId,
   });
-
-  useEffect(() => {
-    if (course?.lessons?.[0]) {
-      setCurrentLessonId(course.lessons[0].id);
-    }
-  }, [course]);
 
   const handleQuizComplete = () => {
     toast({
@@ -112,7 +105,6 @@ const CourseView = () => {
                       {currentLesson.description}
                     </p>
                   </div>
-                  <LessonInteractions lessonId={currentLesson.id} />
                 </>
               )}
               {quiz && (

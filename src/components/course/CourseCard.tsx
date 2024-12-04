@@ -23,24 +23,9 @@ const CourseCard = ({ course, onCourseClick }: CourseCardProps) => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-4">
-          {course.user_progress?.[0]?.progress_percentage > 0 && (
-            <div className="mb-2">
-              <div className="h-1 bg-gray-700 rounded-full">
-                <div
-                  className="h-full bg-red-600 rounded-full"
-                  style={{
-                    width: `${course.user_progress[0].progress_percentage}%`
-                  }}
-                />
-              </div>
-              <p className="text-xs text-white mt-1">
-                {course.user_progress[0].progress_percentage}% complete
-              </p>
-            </div>
-          )}
           <div className="flex items-center gap-2 text-white">
             <Eye className="w-4 h-4" />
-            <span className="text-sm">Assistir agora</span>
+            <span className="text-sm">Acessar curso</span>
           </div>
         </div>
       </div>
