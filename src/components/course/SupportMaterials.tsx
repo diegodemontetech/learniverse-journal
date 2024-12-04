@@ -40,6 +40,7 @@ const SupportMaterials = ({ lessonId }: SupportMaterialsProps) => {
       link.click();
       document.body.removeChild(link);
     } catch (error: any) {
+      console.error("Download error:", error);
       toast({
         title: "Erro",
         description: "Erro ao baixar o arquivo",

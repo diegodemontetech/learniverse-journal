@@ -23,7 +23,7 @@ export const LessonRating = ({ lessonId }: LessonRatingProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Get user's rating - now handling empty results
+      // Get user's rating
       const { data: userRatings } = await supabase
         .from('lesson_ratings')
         .select('rating')
@@ -43,7 +43,7 @@ export const LessonRating = ({ lessonId }: LessonRatingProps) => {
       if (ratings) {
         setTotalRatings(ratings.length);
         const sum = ratings.reduce((acc, curr) => acc + curr.rating, 0);
-        setAverageRating(sum / ratings.length || 0);
+        setAverageRating(ratings.length > 0 ? sum / ratings.length : 0);
       }
     } catch (error) {
       console.error('Error loading ratings:', error);
