@@ -26,6 +26,13 @@ const NewsView = ({ newsId }: NewsViewProps) => {
         .single();
 
       if (error) throw error;
+
+      // Update views count
+      await supabase
+        .from("news")
+        .update({ views_count: (data.views_count || 0) + 1 })
+        .eq("id", newsId);
+
       return data;
     },
   });
@@ -111,7 +118,7 @@ const NewsView = ({ newsId }: NewsViewProps) => {
           <NewsInteractions newsId={newsId} />
         </div>
 
-        {/* Sidebar */}
+        {/* Sidebar with Related News */}
         <div className="space-y-6">
           <div className="bg-i2know-card rounded-lg p-6">
             <h2 className="text-xl font-bold text-white mb-4">Mais Lidas</h2>
