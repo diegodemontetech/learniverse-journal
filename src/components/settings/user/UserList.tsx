@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -33,7 +32,7 @@ interface Profile {
   first_name: string | null;
   last_name: string | null;
   role: string | null;
-  email?: string | null;
+  email: string | null;
 }
 
 const UserList = ({ onEdit }: UserListProps) => {
@@ -58,14 +57,10 @@ const UserList = ({ onEdit }: UserListProps) => {
       // Get the current user's email to demonstrate we can access it
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Return profiles with placeholder for email
-      // In a real application, you might want to implement a secure way to get emails,
-      // possibly through a server-side API endpoint
+      // Return profiles with email information
       return profiles?.map((profile: Profile) => ({
         ...profile,
-        auth_user: { 
-          email: profile.id === user?.id ? user.email : "Email hidden" 
-        }
+        email: profile.id === user?.id ? user.email : "Email hidden"
       })) || [];
     },
   });
@@ -131,7 +126,7 @@ const UserList = ({ onEdit }: UserListProps) => {
             <TableCell>
               {user.first_name} {user.last_name}
             </TableCell>
-            <TableCell>{user.auth_user?.email}</TableCell>
+            <TableCell>{user.email}</TableCell>
             <TableCell>{user.role}</TableCell>
             <TableCell>
               <AlertDialog>
