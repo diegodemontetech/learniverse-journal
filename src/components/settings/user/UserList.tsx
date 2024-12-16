@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import {
   Table,
   TableBody,
@@ -40,14 +40,34 @@ const UserList = ({ onEdit }: UserListProps) => {
         .from("profiles")
         .select(`
           *,
-          auth_user:id (
+          email:id (
             email
           )
         `)
         .order("created_at", { ascending: false });
 
-      if (profilesError) throw profilesError;
-      return profiles;
+      if (profilesError) {
+        console.error("Error fetching profiles:", profilesError);
+        throw profilesError;
+      }
+
+      // Get emails from auth.users table
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      if (authError) {
+        console.error("Error fetching auth users:", authError);
+        throw authError;
+      }
+
+      // Combine profiles with auth user emails
+      const usersWithEmail = profiles?.map(profile => {
+        const authUser = authUsers?.users.find(user => user.id === profile.id);
+        return {
+          ...profile,
+          auth_user: { email: authUser?.email }
+        };
+      });
+
+      return usersWithEmail || [];
     },
   });
 
@@ -67,7 +87,6 @@ const UserList = ({ onEdit }: UserListProps) => {
         description: "User deleted successfully",
       });
 
-      // Refresh the users list
       queryClient.invalidateQueries({ queryKey: ["users"] });
     } catch (error: any) {
       console.error("Error deleting user:", error);
@@ -113,7 +132,7 @@ const UserList = ({ onEdit }: UserListProps) => {
             <TableCell>
               {user.first_name} {user.last_name}
             </TableCell>
-            <TableCell>{(user as any).auth_user?.email}</TableCell>
+            <TableCell>{user.auth_user?.email}</TableCell>
             <TableCell>{user.role}</TableCell>
             <TableCell>
               <AlertDialog>
