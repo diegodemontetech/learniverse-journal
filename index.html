@@ -12,29 +12,16 @@
   <body>
     <div id="root"></div>
     <script>
+      // Simplificando o código para apenas repassar mensagens para a janela pai
       window.addEventListener('message', function(event) {
-        // Permitir mensagens da própria origem
-        if (event.origin === window.location.origin) {
+        try {
+          // Se temos uma janela pai e não somos a janela principal
           if (window.parent && window.parent !== window) {
+            // Repassar a mensagem usando * como origem para permitir comunicação cross-origin
             window.parent.postMessage(event.data, '*');
           }
-          return;
-        }
-
-        // Lista de origens permitidas
-        const allowedOrigins = [
-          'https://gptengineer.app',
-          'http://localhost:3000',
-          'https://lovable.dev',
-          'https://preview--learniverse-journal.lovable.app'
-        ];
-
-        // Verificar se a origem está na lista de permitidas
-        if (allowedOrigins.includes(event.origin)) {
-          if (window.parent && window.parent !== window) {
-            // Usar '*' como targetOrigin para permitir comunicação entre diferentes origens
-            window.parent.postMessage(event.data, '*');
-          }
+        } catch (error) {
+          console.error('Erro ao processar mensagem:', error);
         }
       });
     </script>
