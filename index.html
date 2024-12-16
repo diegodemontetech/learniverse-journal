@@ -11,6 +11,20 @@
 
   <body>
     <div id="root"></div>
+    <script>
+      window.addEventListener('message', function(event) {
+        const allowedOrigins = [
+          'https://gptengineer.app',
+          'http://localhost:3000',
+          'https://lovable.dev',
+          'https://preview--learniverse-journal.lovable.app'
+        ];
+        if (allowedOrigins.includes(event.origin)) {
+          // Process the message
+          console.log('Received message from allowed origin:', event.origin);
+        }
+      }, false);
+    </script>
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
