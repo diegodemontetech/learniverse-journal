@@ -24,10 +24,12 @@ const queryClient = new QueryClient({
     queries: {
       retry: false,
       refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
       meta: {
         errorHandler: (error: any) => {
-          if (error?.message?.includes('JWT')) {
+          if (error?.message?.includes('JWT') || error?.message?.includes('session')) {
             queryClient.clear();
+            supabase.auth.signOut();
           }
         }
       }
@@ -42,14 +44,21 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-      
-      if (!currentSession) {
-        toast({
-          title: "Acesso negado",
-          description: "Você precisa estar logado para acessar esta página.",
-          variant: "destructive",
-        });
+      try {
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        
+        if (error || !currentSession) {
+          await supabase.auth.signOut();
+          queryClient.clear();
+          toast({
+            title: "Sessão expirada",
+            description: "Por favor, faça login novamente.",
+            variant: "destructive",
+          });
+          navigate("/auth");
+        }
+      } catch (error) {
+        console.error("Session check error:", error);
         navigate("/auth");
       }
     };
@@ -61,10 +70,17 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   // Set up subscription to auth changes
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT' || !session) {
         queryClient.clear();
         navigate("/auth");
+      } else if (event === 'SIGNED_IN') {
+        // Verify the session is valid
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (!currentSession) {
+          await supabase.auth.signOut();
+          navigate("/auth");
+        }
       }
     });
 
@@ -74,7 +90,11 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }, [navigate]);
 
   if (isLoading) {
-    return <div>Carregando...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
+      </div>
+    );
   }
 
   if (!session) {
