@@ -18,7 +18,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Parse and validate request body
+    // Parse request body
     let userId: string;
     try {
       const requestData = await req.json();
@@ -39,97 +39,64 @@ serve(async (req) => {
       );
     }
 
-    // Verify the requesting user is an admin
-    const {
-      data: { user },
-      error: authError,
-    } = await supabaseClient.auth.getUser(req.headers.get('Authorization')?.replace('Bearer ', ''))
-
-    if (authError) {
-      console.error('Auth error:', authError);
-      throw new Error('Error getting user: ' + authError.message)
-    }
-
-    // Get the user's role
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('profiles')
-      .select('role')
-      .eq('id', user?.id)
-      .single()
-
-    if (profileError) {
-      console.error('Profile error:', profileError);
-      throw new Error('Error getting profile: ' + profileError.message)
-    }
-
-    if (profile.role !== 'admin') {
-      throw new Error('Only admins can delete users')
-    }
+    console.log("Attempting to delete user:", userId);
 
     // Delete related records first
-    console.log('Deleting related records for user:', userId)
+    const tables = [
+      'certificates',
+      'quiz_attempts',
+      'user_progress',
+      'daily_logins',
+      'news_reads',
+      'lesson_views',
+      'ebook_views',
+      'news_ratings',
+      'lesson_ratings',
+      'lesson_likes',
+      'news_likes',
+      'lesson_comments',
+      'news_comments',
+      'notifications',
+      'user_ebook_progress'
+    ];
 
-    // Delete certificates
-    const { error: certificatesError } = await supabaseClient
-      .from('certificates')
-      .delete()
-      .eq('user_id', userId)
-    
-    if (certificatesError) {
-      console.error('Error deleting certificates:', certificatesError)
-      throw new Error('Error deleting certificates: ' + certificatesError.message)
-    }
-
-    // Delete quiz attempts
-    const { error: quizAttemptsError } = await supabaseClient
-      .from('quiz_attempts')
-      .delete()
-      .eq('user_id', userId)
-
-    if (quizAttemptsError) {
-      console.error('Error deleting quiz attempts:', quizAttemptsError)
-      throw new Error('Error deleting quiz attempts: ' + quizAttemptsError.message)
-    }
-
-    // Delete user progress
-    const { error: progressError } = await supabaseClient
-      .from('user_progress')
-      .delete()
-      .eq('user_id', userId)
-
-    if (progressError) {
-      console.error('Error deleting user progress:', progressError)
-      throw new Error('Error deleting user progress: ' + progressError.message)
+    for (const table of tables) {
+      const { error: deleteError } = await supabaseClient
+        .from(table)
+        .delete()
+        .eq('user_id', userId);
+      
+      if (deleteError) {
+        console.error(`Error deleting from ${table}:`, deleteError);
+      }
     }
 
     // Delete the user's profile
     const { error: deleteProfileError } = await supabaseClient
       .from('profiles')
       .delete()
-      .eq('id', userId)
+      .eq('id', userId);
 
     if (deleteProfileError) {
-      console.error('Error deleting profile:', deleteProfileError);
-      throw new Error('Error deleting profile: ' + deleteProfileError.message)
+      throw new Error('Error deleting profile: ' + deleteProfileError.message);
     }
 
-    // Finally, delete the user from auth.users
-    const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(userId)
+    // Delete the user from auth.users
+    const { error: deleteAuthError } = await supabaseClient.auth.admin.deleteUser(userId);
 
-    if (deleteError) {
-      console.error('Error deleting auth user:', deleteError);
-      throw new Error('Error deleting user: ' + deleteError.message)
+    if (deleteAuthError) {
+      throw new Error('Error deleting auth user: ' + deleteAuthError.message);
     }
 
-    console.log('Successfully deleted user:', userId)
+    console.log("Successfully deleted user:", userId);
 
     return new Response(
       JSON.stringify({ message: 'User deleted successfully' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    );
 
   } catch (error) {
-    console.error('Error in delete-user function:', error)
+    console.error('Error in delete-user function:', error);
     
     return new Response(
       JSON.stringify({ error: error.message }),
@@ -137,6 +104,6 @@ serve(async (req) => {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
-    )
+    );
   }
 })
