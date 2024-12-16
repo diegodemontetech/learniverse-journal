@@ -11,6 +11,7 @@ interface NewsFormData {
   is_featured: boolean;
   layout_position: string;
   author_id: string;
+  preview_content?: string;
 }
 
 export const useNewsMutations = () => {
@@ -19,6 +20,20 @@ export const useNewsMutations = () => {
 
   const createNewsMutation = useMutation({
     mutationFn: async (data: NewsFormData) => {
+      // First verify if user is admin
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError) throw profileError;
+      if (profile.role !== "admin") throw new Error("Permissão negada");
+
+      // Then proceed with the insert
       const { error } = await supabase.from("news").insert([data]);
       if (error) throw error;
     },
@@ -38,6 +53,20 @@ export const useNewsMutations = () => {
 
   const updateNewsMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: NewsFormData }) => {
+      // First verify if user is admin
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError) throw profileError;
+      if (profile.role !== "admin") throw new Error("Permissão negada");
+
+      // Then proceed with the update
       const { error } = await supabase
         .from("news")
         .update(data)
@@ -60,6 +89,20 @@ export const useNewsMutations = () => {
 
   const deleteNewsMutation = useMutation({
     mutationFn: async (id: string) => {
+      // First verify if user is admin
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
+
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError) throw profileError;
+      if (profile.role !== "admin") throw new Error("Permissão negada");
+
+      // Then proceed with the delete
       const { error } = await supabase.from("news").delete().eq("id", id);
       if (error) throw error;
     },
