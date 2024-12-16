@@ -20,7 +20,9 @@
           'https://preview--learniverse-journal.lovable.app'
         ];
 
+        // Verificar se a origem é permitida
         if (allowedOrigins.includes(event.origin)) {
+          // Encaminhar a mensagem para a janela pai se existir
           if (window.parent && window.parent !== window) {
             window.parent.postMessage(event.data, event.origin);
           }
