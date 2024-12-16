@@ -12,11 +12,15 @@ import {
 import { useNavigate } from "react-router-dom";
 import { BookOpen, FileText, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSessionContext } from "@supabase/auth-helpers-react";
+import { useToast } from "@/hooks/use-toast";
 
 type SortOption = "latest" | "rating" | "a-z";
 
 const Ebooks = () => {
   const navigate = useNavigate();
+  const { session } = useSessionContext();
+  const { toast } = useToast();
   const [sortBy, setSortBy] = useState<SortOption>("latest");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
@@ -26,14 +30,31 @@ const Ebooks = () => {
       const { data, error } = await supabase
         .from("categories")
         .select("*");
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("JWT")) {
+          toast({
+            title: "Erro de sessão",
+            description: "Sua sessão expirou. Por favor, faça login novamente.",
+            variant: "destructive",
+          });
+          navigate("/auth");
+          return [];
+        }
+        throw error;
+      }
       return data;
     },
+    enabled: !!session,
   });
 
   const { data: ebooks, isLoading } = useQuery({
     queryKey: ["ebooks", sortBy, selectedCategory],
     queryFn: async () => {
+      if (!session) {
+        navigate("/auth");
+        return [];
+      }
+
       let query = supabase
         .from("ebooks")
         .select("*, categories(name)");
@@ -54,9 +75,21 @@ const Ebooks = () => {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("JWT")) {
+          toast({
+            title: "Erro de sessão",
+            description: "Sua sessão expirou. Por favor, faça login novamente.",
+            variant: "destructive",
+          });
+          navigate("/auth");
+          return [];
+        }
+        throw error;
+      }
       return data;
     },
+    enabled: !!session,
   });
 
   const renderSkeleton = () => (
