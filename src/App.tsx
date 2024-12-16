@@ -74,13 +74,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       if (event === 'SIGNED_OUT' || !session) {
         queryClient.clear();
         navigate("/auth");
-      } else if (event === 'SIGNED_IN') {
-        // Verify the session is valid
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        if (!currentSession) {
-          await supabase.auth.signOut();
-          navigate("/auth");
-        }
       }
     });
 
@@ -98,6 +91,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!session) {
+    navigate("/auth");
     return null;
   }
 

@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useSessionContext } from "@supabase/auth-helpers-react";
 
 const NewsSection = () => {
   const navigate = useNavigate();
+  const { session } = useSessionContext();
 
   const { data: latestNews } = useQuery({
     queryKey: ['latestNews'],
@@ -20,17 +22,22 @@ const NewsSection = () => {
       if (error) throw error;
       return data;
     },
+    enabled: !!session, // Only run query when session exists
   });
 
   if (!latestNews?.length) {
     // Insert sample news articles if none exist
     const insertSampleNews = async () => {
+      if (!session?.user?.id) return; // Don't insert if no user is logged in
+
       const { data: authorData } = await supabase
         .from('profiles')
         .select('id')
-        .limit(1);
+        .eq('id', session.user.id)
+        .single();
 
-      const authorId = authorData?.[0]?.id;
+      const authorId = authorData?.id;
+      if (!authorId) return;
 
       const sampleNews = [
         {
