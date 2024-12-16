@@ -23,9 +23,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { User } from "@supabase/supabase-js";
 
 interface UserListProps {
   onEdit: (user: any) => void;
+}
+
+interface Profile {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  role: string | null;
+  auth_user?: {
+    email: string | null;
+  };
 }
 
 const UserList = ({ onEdit }: UserListProps) => {
@@ -59,8 +70,8 @@ const UserList = ({ onEdit }: UserListProps) => {
       }
 
       // Combine profiles with auth user emails
-      const usersWithEmail = profiles?.map(profile => {
-        const authUser = authUsers?.users.find(user => user.id === profile.id);
+      const usersWithEmail = profiles?.map((profile: Profile) => {
+        const authUser = authUsers?.users?.find((user: User) => user.id === profile.id);
         return {
           ...profile,
           auth_user: { email: authUser?.email }
@@ -127,7 +138,7 @@ const UserList = ({ onEdit }: UserListProps) => {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {users.map((user) => (
+        {users.map((user: Profile) => (
           <TableRow key={user.id}>
             <TableCell>
               {user.first_name} {user.last_name}
