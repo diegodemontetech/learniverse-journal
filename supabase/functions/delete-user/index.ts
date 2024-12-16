@@ -21,13 +21,13 @@ serve(async (req) => {
     // Parse and validate request body
     let userId: string;
     try {
-      const body = await req.json();
-      console.log('Received request body:', body);
+      const requestData = await req.json();
+      console.log('Received request body:', requestData);
       
-      if (!body.userId || typeof body.userId !== 'string') {
+      if (!requestData.userId || typeof requestData.userId !== 'string') {
         throw new Error('Invalid or missing userId in request body');
       }
-      userId = body.userId;
+      userId = requestData.userId;
     } catch (error) {
       console.error('Error parsing request body:', error);
       return new Response(
