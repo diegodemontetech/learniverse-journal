@@ -19,7 +19,14 @@ import Ebooks from "./pages/Ebooks";
 import EbookView from "./pages/EbookView";
 import Immersion from "./pages/Immersion";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { session, isLoading } = useSessionContext();
@@ -40,7 +47,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   // Set up subscription to auth changes
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session) {
+      if (event === 'SIGNED_OUT' || !session) {
+        queryClient.clear();
         navigate("/auth");
       }
     });
