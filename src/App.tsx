@@ -22,14 +22,15 @@ import Immersion from "./pages/Immersion";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: false, // Changed from 1 to false to prevent retrying failed auth requests
+      retry: false,
       refetchOnWindowFocus: false,
-      onError: (error: any) => {
-        // Handle session errors globally
-        if (error?.message?.includes('JWT')) {
-          queryClient.clear(); // Clear cache on auth errors
+      meta: {
+        errorHandler: (error: any) => {
+          if (error?.message?.includes('JWT')) {
+            queryClient.clear();
+          }
         }
-      },
+      }
     },
   },
 });
