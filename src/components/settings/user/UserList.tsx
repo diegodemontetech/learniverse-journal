@@ -56,7 +56,7 @@ const UserList = ({ onEdit }: UserListProps) => {
       console.log("Attempting to delete user:", userId);
 
       const { data, error } = await supabase.functions.invoke('delete-user', {
-        body: JSON.stringify({ userId }), // Properly stringify the body
+        body: { userId },
         headers: {
           'Content-Type': 'application/json',
         },
