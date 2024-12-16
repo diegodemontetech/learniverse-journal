@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -32,7 +33,18 @@ interface Profile {
   first_name: string | null;
   last_name: string | null;
   role: string | null;
-  email: string | null;
+  email?: string | null;
+  address: string | null;
+  avatar_url: string | null;
+  created_at: string;
+  department_id: string | null;
+  group_id: string | null;
+  level: number | null;
+  phone: string | null;
+  points: number | null;
+  position_id: string | null;
+  reports_to_user_id: string | null;
+  updated_at: string;
 }
 
 const UserList = ({ onEdit }: UserListProps) => {
