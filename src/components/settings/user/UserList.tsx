@@ -55,7 +55,7 @@ const UserList = ({ onEdit }: UserListProps) => {
   const { data: users, isLoading, error } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      // Fetch profiles with their auth user data
+      // Fetch profiles
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("*")
@@ -66,13 +66,13 @@ const UserList = ({ onEdit }: UserListProps) => {
         throw profilesError;
       }
 
-      // Get the current user's email to demonstrate we can access it
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      // Return profiles with email information
+      // Get the current user to show their email
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+      // Return profiles with email information (only for current user)
       return profiles?.map((profile: Profile) => ({
         ...profile,
-        email: profile.id === user?.id ? user.email : "Email hidden"
+        email: profile.id === currentUser?.id ? currentUser.email : "Email hidden"
       })) || [];
     },
   });
