@@ -57,6 +57,9 @@ const UserList = ({ onEdit }: UserListProps) => {
 
       const { data, error } = await supabase.functions.invoke('delete-user', {
         body: { userId },
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       if (error) {
