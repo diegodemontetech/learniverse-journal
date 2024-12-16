@@ -13,19 +13,27 @@
     <div id="root"></div>
     <script>
       window.addEventListener('message', function(event) {
+        // Lista de origens permitidas
         const allowedOrigins = [
           'https://gptengineer.app',
           'http://localhost:3000',
           'https://lovable.dev',
           'https://preview--learniverse-journal.lovable.app',
-          event.origin // Add the current origin to allowed list
+          event.origin // Adiciona a origem atual à lista permitida
         ];
+
+        // Verifica se a origem está na lista de permitidas
         if (allowedOrigins.includes(event.origin)) {
-          // Process the message
-          console.log('Received message from allowed origin:', event.origin);
-          // Forward the message to the parent if it exists
-          if (window.parent && window.parent !== window) {
-            window.parent.postMessage(event.data, event.origin);
+          try {
+            // Processa a mensagem
+            console.log('Mensagem recebida de origem permitida:', event.origin);
+            
+            // Encaminha a mensagem para o pai se ele existir e for diferente da janela atual
+            if (window.parent && window.parent !== window) {
+              window.parent.postMessage(event.data, '*');
+            }
+          } catch (error) {
+            console.error('Erro ao processar mensagem:', error);
           }
         }
       }, false);
