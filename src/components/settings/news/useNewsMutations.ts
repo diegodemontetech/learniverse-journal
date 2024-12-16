@@ -19,19 +19,19 @@ export const useNewsMutations = () => {
   const queryClient = useQueryClient();
 
   const verifyAdminAccess = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Usuário não autenticado");
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error("Usuário não autenticado");
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("role")
-      .eq("id", user.id)
+      .eq("id", session.user.id)
       .single();
 
     if (profileError) throw profileError;
-    if (profile.role !== "admin") throw new Error("Permissão negada");
+    if (profile?.role !== "admin") throw new Error("Permissão negada");
 
-    return user.id;
+    return session.user.id;
   };
 
   const createNewsMutation = useMutation({

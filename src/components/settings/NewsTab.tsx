@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -30,27 +30,45 @@ const NewsTab = () => {
   
   const { createNewsMutation, updateNewsMutation, deleteNewsMutation } = useNewsMutations();
 
-  // First, check if user is admin
-  const { data: userProfile, isLoading: isLoadingProfile } = useQuery({
-    queryKey: ["userProfile"],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user found");
+  // Check authentication and admin status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Acesso negado",
+          description: "Você precisa estar logado para acessar esta página.",
+          variant: "destructive",
+        });
+        navigate("/");
+        return;
+      }
 
-      const { data, error } = await supabase
+      const { data: profile } = await supabase
         .from("profiles")
         .select("role")
-        .eq("id", user.id)
+        .eq("id", session.user.id)
         .single();
 
-      if (error) throw error;
-      return data;
-    },
-  });
+      if (profile?.role !== 'admin') {
+        toast({
+          title: "Acesso negado",
+          description: "Você não tem permissão para acessar esta página.",
+          variant: "destructive",
+        });
+        navigate("/");
+      }
+    };
+
+    checkAuth();
+  }, [navigate, toast]);
 
   const { data: news, isLoading } = useQuery({
     queryKey: ["news"],
     queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Não autorizado");
+
       const { data, error } = await supabase
         .from("news")
         .select(`
@@ -64,48 +82,17 @@ const NewsTab = () => {
     },
   });
 
-  // Redirect non-admin users
-  if (!isLoadingProfile && userProfile?.role !== 'admin') {
-    toast({
-      title: "Acesso negado",
-      description: "Você não tem permissão para acessar esta página.",
-      variant: "destructive",
-    });
-    navigate("/");
-    return null;
-  }
-
   const handleSubmit = async (formData: any) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "Erro",
-          description: "Usuário não encontrado.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const newsData = {
-        ...formData,
-        author_id: user.id
-      };
-
       if (editingNews) {
-        await updateNewsMutation.mutateAsync({ id: editingNews.id, data: newsData });
+        await updateNewsMutation.mutateAsync({ id: editingNews.id, data: formData });
       } else {
-        await createNewsMutation.mutateAsync(newsData);
+        await createNewsMutation.mutateAsync(formData);
       }
       setIsOpen(false);
       setEditingNews(null);
     } catch (error) {
       console.error("Error submitting news:", error);
-      toast({
-        title: "Erro",
-        description: "Erro ao salvar a notícia.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -120,7 +107,7 @@ const NewsTab = () => {
     }
   };
 
-  if (isLoading || isLoadingProfile) {
+  if (isLoading) {
     return <div>Carregando...</div>;
   }
 
