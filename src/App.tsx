@@ -1,9 +1,11 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { SessionContextProvider } from "@supabase/auth-helpers-react";
+import { SessionContextProvider, useSessionContext } from "@supabase/auth-helpers-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { supabase } from "./integrations/supabase/client";
+import { useEffect } from "react";
+import { useToast } from "./components/ui/use-toast";
 import Layout from "./components/Layout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -20,7 +22,42 @@ import Immersion from "./pages/Immersion";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  // Implement your logic to protect routes (e.g. check for authentication)
+  const { session, isLoading } = useSessionContext();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!isLoading && !session) {
+      toast({
+        title: "Acesso negado",
+        description: "Você precisa estar logado para acessar esta página.",
+        variant: "destructive",
+      });
+      navigate("/auth");
+    }
+  }, [session, isLoading, navigate, toast]);
+
+  // Set up subscription to auth changes
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) {
+        navigate("/auth");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
+  if (isLoading) {
+    return <div>Carregando...</div>;
+  }
+
+  if (!session) {
+    return null;
+  }
+
   return children;
 };
 
