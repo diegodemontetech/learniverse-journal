@@ -17,11 +17,16 @@
           'https://gptengineer.app',
           'http://localhost:3000',
           'https://lovable.dev',
-          'https://preview--learniverse-journal.lovable.app'
+          'https://preview--learniverse-journal.lovable.app',
+          event.origin // Add the current origin to allowed list
         ];
         if (allowedOrigins.includes(event.origin)) {
           // Process the message
           console.log('Received message from allowed origin:', event.origin);
+          // Forward the message to the parent if it exists
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage(event.data, event.origin);
+          }
         }
       }, false);
     </script>
