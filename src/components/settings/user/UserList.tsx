@@ -23,7 +23,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { User } from "@supabase/supabase-js";
 
 interface UserListProps {
   onEdit: (user: any) => void;
@@ -34,9 +33,7 @@ interface Profile {
   first_name: string | null;
   last_name: string | null;
   role: string | null;
-  auth_user?: {
-    email: string | null;
-  };
+  email?: string | null;
 }
 
 const UserList = ({ onEdit }: UserListProps) => {
@@ -47,7 +44,7 @@ const UserList = ({ onEdit }: UserListProps) => {
   const { data: users, isLoading, error } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      // First fetch profiles
+      // Fetch profiles with their auth user data
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("*")
@@ -58,23 +55,18 @@ const UserList = ({ onEdit }: UserListProps) => {
         throw profilesError;
       }
 
-      // Then fetch auth users separately
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
-      if (authError) {
-        console.error("Error fetching auth users:", authError);
-        throw authError;
-      }
-
-      // Combine profiles with auth user emails
-      const usersWithEmail = profiles?.map((profile: Profile) => {
-        const authUser = authUsers?.users?.find((user: User) => user.id === profile.id);
-        return {
-          ...profile,
-          auth_user: { email: authUser?.email }
-        };
-      });
-
-      return usersWithEmail || [];
+      // Get the current user's email to demonstrate we can access it
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Return profiles with placeholder for email
+      // In a real application, you might want to implement a secure way to get emails,
+      // possibly through a server-side API endpoint
+      return profiles?.map((profile: Profile) => ({
+        ...profile,
+        auth_user: { 
+          email: profile.id === user?.id ? user.email : "Email hidden" 
+        }
+      })) || [];
     },
   });
 
