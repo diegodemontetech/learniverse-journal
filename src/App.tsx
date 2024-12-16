@@ -22,8 +22,14 @@ import Immersion from "./pages/Immersion";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
+      retry: false, // Changed from 1 to false to prevent retrying failed auth requests
       refetchOnWindowFocus: false,
+      onError: (error: any) => {
+        // Handle session errors globally
+        if (error?.message?.includes('JWT')) {
+          queryClient.clear(); // Clear cache on auth errors
+        }
+      },
     },
   },
 });
@@ -34,15 +40,23 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!isLoading && !session) {
-      toast({
-        title: "Acesso negado",
-        description: "Você precisa estar logado para acessar esta página.",
-        variant: "destructive",
-      });
-      navigate("/auth");
+    const checkSession = async () => {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      if (!currentSession) {
+        toast({
+          title: "Acesso negado",
+          description: "Você precisa estar logado para acessar esta página.",
+          variant: "destructive",
+        });
+        navigate("/auth");
+      }
+    };
+
+    if (!isLoading) {
+      checkSession();
     }
-  }, [session, isLoading, navigate, toast]);
+  }, [isLoading, navigate, toast]);
 
   // Set up subscription to auth changes
   useEffect(() => {
