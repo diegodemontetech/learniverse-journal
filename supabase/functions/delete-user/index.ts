@@ -47,7 +47,53 @@ serve(async (req) => {
       throw new Error('Only admins can delete users')
     }
 
-    // Delete the user from auth.users (this will cascade to profiles due to FK)
+    // Delete related records first
+    console.log('Deleting related records for user:', userId)
+
+    // Delete certificates
+    const { error: certificatesError } = await supabaseClient
+      .from('certificates')
+      .delete()
+      .eq('user_id', userId)
+    
+    if (certificatesError) {
+      console.error('Error deleting certificates:', certificatesError)
+      throw new Error('Error deleting certificates: ' + certificatesError.message)
+    }
+
+    // Delete quiz attempts
+    const { error: quizAttemptsError } = await supabaseClient
+      .from('quiz_attempts')
+      .delete()
+      .eq('user_id', userId)
+
+    if (quizAttemptsError) {
+      console.error('Error deleting quiz attempts:', quizAttemptsError)
+      throw new Error('Error deleting quiz attempts: ' + quizAttemptsError.message)
+    }
+
+    // Delete user progress
+    const { error: progressError } = await supabaseClient
+      .from('user_progress')
+      .delete()
+      .eq('user_id', userId)
+
+    if (progressError) {
+      console.error('Error deleting user progress:', progressError)
+      throw new Error('Error deleting user progress: ' + progressError.message)
+    }
+
+    // Delete the user's profile
+    const { error: deleteProfileError } = await supabaseClient
+      .from('profiles')
+      .delete()
+      .eq('id', userId)
+
+    if (deleteProfileError) {
+      throw new Error('Error deleting profile: ' + deleteProfileError.message)
+    }
+
+    // Finally, delete the user from auth.users
     const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(userId)
 
     if (deleteError) {
