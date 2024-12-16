@@ -63,6 +63,19 @@ const NewsTab = () => {
     checkAuth();
   }, [navigate, toast]);
 
+  // Set up subscription to auth changes
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!session) {
+        navigate("/");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
   const { data: news, isLoading } = useQuery({
     queryKey: ["news"],
     queryFn: async () => {
@@ -93,6 +106,11 @@ const NewsTab = () => {
       setEditingNews(null);
     } catch (error) {
       console.error("Error submitting news:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar a notícia. Por favor, tente novamente.",
+        variant: "destructive",
+      });
     }
   };
 
