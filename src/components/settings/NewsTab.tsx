@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import NewsForm from "./news/NewsForm";
 import NewsTable from "./news/NewsTable";
 import { useNewsMutations } from "./news/useNewsMutations";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface News {
   id: string;
@@ -23,8 +25,28 @@ interface News {
 const NewsTab = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [editingNews, setEditingNews] = useState<News | null>(null);
+  const { toast } = useToast();
+  const navigate = useNavigate();
   
   const { createNewsMutation, updateNewsMutation, deleteNewsMutation } = useNewsMutations();
+
+  // First, check if user is admin
+  const { data: userProfile, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const { data: news, isLoading } = useQuery({
     queryKey: ["news"],
@@ -42,10 +64,28 @@ const NewsTab = () => {
     },
   });
 
+  // Redirect non-admin users
+  if (!isLoadingProfile && userProfile?.role !== 'admin') {
+    toast({
+      title: "Acesso negado",
+      description: "Você não tem permissão para acessar esta página.",
+      variant: "destructive",
+    });
+    navigate("/");
+    return null;
+  }
+
   const handleSubmit = async (formData: any) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user found");
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não encontrado.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       const newsData = {
         ...formData,
@@ -61,6 +101,11 @@ const NewsTab = () => {
       setEditingNews(null);
     } catch (error) {
       console.error("Error submitting news:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao salvar a notícia.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -75,7 +120,7 @@ const NewsTab = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingProfile) {
     return <div>Carregando...</div>;
   }
 
