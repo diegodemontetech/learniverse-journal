@@ -11,6 +11,15 @@
 
   <body>
     <div id="root"></div>
+    <script>
+      window.addEventListener('message', function(event) {
+        // Only forward messages if we're in an iframe
+        if (window.parent && window.parent !== window) {
+          // Forward the message to the parent window
+          window.parent.postMessage(event.data, '*');
+        }
+      });
+    </script>
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
