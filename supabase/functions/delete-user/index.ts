@@ -18,9 +18,26 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get the request body
-    const { userId } = await req.json()
-    console.log('Attempting to delete user:', userId)
+    // Parse and validate request body
+    let userId: string;
+    try {
+      const body = await req.json();
+      console.log('Received request body:', body);
+      
+      if (!body.userId || typeof body.userId !== 'string') {
+        throw new Error('Invalid or missing userId in request body');
+      }
+      userId = body.userId;
+    } catch (error) {
+      console.error('Error parsing request body:', error);
+      return new Response(
+        JSON.stringify({ error: 'Invalid request body' }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
 
     // Verify the requesting user is an admin
     const {
@@ -29,6 +46,7 @@ serve(async (req) => {
     } = await supabaseClient.auth.getUser(req.headers.get('Authorization')?.replace('Bearer ', ''))
 
     if (authError) {
+      console.error('Auth error:', authError);
       throw new Error('Error getting user: ' + authError.message)
     }
 
@@ -40,6 +58,7 @@ serve(async (req) => {
       .single()
 
     if (profileError) {
+      console.error('Profile error:', profileError);
       throw new Error('Error getting profile: ' + profileError.message)
     }
 
@@ -90,6 +109,7 @@ serve(async (req) => {
       .eq('id', userId)
 
     if (deleteProfileError) {
+      console.error('Error deleting profile:', deleteProfileError);
       throw new Error('Error deleting profile: ' + deleteProfileError.message)
     }
 
@@ -97,6 +117,7 @@ serve(async (req) => {
     const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(userId)
 
     if (deleteError) {
+      console.error('Error deleting auth user:', deleteError);
       throw new Error('Error deleting user: ' + deleteError.message)
     }
 
