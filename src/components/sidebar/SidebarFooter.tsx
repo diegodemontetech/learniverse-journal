@@ -27,8 +27,8 @@ const SidebarFooter = () => {
       navigate('/auth');
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to log out. Please try again.",
+        title: "Erro",
+        description: "Falha ao sair. Por favor, tente novamente.",
         variant: "destructive",
       });
     }
