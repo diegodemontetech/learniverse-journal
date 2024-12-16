@@ -11,20 +11,6 @@
 
   <body>
     <div id="root"></div>
-    <script>
-      // Simplificando o código para apenas repassar mensagens para a janela pai
-      window.addEventListener('message', function(event) {
-        try {
-          // Se temos uma janela pai e não somos a janela principal
-          if (window.parent && window.parent !== window) {
-            // Repassar a mensagem usando * como origem para permitir comunicação cross-origin
-            window.parent.postMessage(event.data, '*');
-          }
-        } catch (error) {
-          console.error('Erro ao processar mensagem:', error);
-        }
-      });
-    </script>
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
