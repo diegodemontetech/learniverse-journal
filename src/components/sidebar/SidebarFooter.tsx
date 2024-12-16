@@ -5,10 +5,21 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { useEffect, useState } from 'react';
+import { getUserRole } from '@/utils/auth';
 
 const SidebarFooter = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      const role = await getUserRole();
+      setIsAdmin(role === 'admin');
+    };
+    checkAdminStatus();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -44,18 +55,20 @@ const SidebarFooter = () => {
             {isMobile && <span>Perfil</span>}
           </Link>
         </li>
-        <li>
-          <Link
-            to="/settings"
-            className={cn(
-              "flex items-center gap-3 p-2 rounded-lg text-white hover:bg-gray-800 transition-colors",
-              isMobile && "text-sm"
-            )}
-          >
-            <Settings className="w-5 h-5" />
-            {isMobile && <span>Configurações</span>}
-          </Link>
-        </li>
+        {isAdmin && (
+          <li>
+            <Link
+              to="/settings"
+              className={cn(
+                "flex items-center gap-3 p-2 rounded-lg text-white hover:bg-gray-800 transition-colors",
+                isMobile && "text-sm"
+              )}
+            >
+              <Settings className="w-5 h-5" />
+              {isMobile && <span>Configurações</span>}
+            </Link>
+          </li>
+        )}
         <li>
           <button
             onClick={handleLogout}

@@ -2,6 +2,8 @@ import { Home, Tv, BookOpen, Megaphone, Trophy, FlagTriangleRight } from 'lucide
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
+import { getUserRole } from '@/utils/auth';
 import {
   Tooltip,
   TooltipContent,
@@ -10,16 +12,33 @@ import {
 } from "@/components/ui/tooltip";
 
 const menuItems = [
-  { icon: Home, label: 'Início', path: '/' },
-  { icon: Tv, label: 'Cursos', path: '/courses' },
-  { icon: BookOpen, label: 'E-Books', path: '/ebooks' },
-  { icon: Megaphone, label: 'Notícias', path: '/news' },
-  { icon: Trophy, label: 'Jornada', path: '/journey' },
-  { icon: FlagTriangleRight, label: 'Imersão', path: '/immersion' },
+  { icon: Home, label: 'Início', path: '/', requiredRole: null },
+  { icon: Tv, label: 'Cursos', path: '/courses', requiredRole: null },
+  { icon: BookOpen, label: 'E-Books', path: '/ebooks', requiredRole: null },
+  { icon: Megaphone, label: 'Notícias', path: '/news', requiredRole: null },
+  { icon: Trophy, label: 'Jornada', path: '/journey', requiredRole: null },
+  { icon: FlagTriangleRight, label: 'Imersão', path: '/immersion', requiredRole: null },
 ];
 
 const SidebarNavigation = () => {
   const isMobile = useIsMobile();
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const role = await getUserRole();
+      setUserRole(role);
+    };
+    fetchUserRole();
+  }, []);
+
+  // Filter menu items based on user role
+  const visibleMenuItems = menuItems.filter(item => {
+    // If no role is required, show the item
+    if (!item.requiredRole) return true;
+    // If a role is required, check if user has that role
+    return userRole === item.requiredRole;
+  });
 
   return (
     <nav className={cn(
@@ -30,7 +49,7 @@ const SidebarNavigation = () => {
         "space-y-1",
         isMobile && "px-2"
       )}>
-        {menuItems.map((item) => (
+        {visibleMenuItems.map((item) => (
           <li key={item.label}>
             {isMobile ? (
               <Link
