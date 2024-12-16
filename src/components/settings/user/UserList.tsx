@@ -47,14 +47,10 @@ const UserList = ({ onEdit }: UserListProps) => {
   const { data: users, isLoading, error } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
+      // First fetch profiles
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select(`
-          *,
-          email:id (
-            email
-          )
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (profilesError) {
@@ -62,7 +58,7 @@ const UserList = ({ onEdit }: UserListProps) => {
         throw profilesError;
       }
 
-      // Get emails from auth.users table
+      // Then fetch auth users separately
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       if (authError) {
         console.error("Error fetching auth users:", authError);
