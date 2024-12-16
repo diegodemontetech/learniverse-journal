@@ -2,15 +2,18 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useSessionContext } from "@supabase/auth-helpers-react";
 
 export const useCourseData = (courseId: string | undefined) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { session, isLoading: isSessionLoading } = useSessionContext();
 
   return useQuery({
     queryKey: ["course", courseId],
     queryFn: async () => {
       if (!courseId) throw new Error("Course ID is required");
+      if (!session) throw new Error("No active session");
       
       // Get course data with lessons
       const { data: courseData, error: courseError } = await supabase
@@ -53,16 +56,25 @@ export const useCourseData = (courseId: string | undefined) => {
         lessons: lessonsWithProgress
       };
     },
-    enabled: !!courseId,
+    enabled: !!courseId && !!session && !isSessionLoading,
     meta: {
       onError: (error: Error) => {
         console.error("Error in course query:", error);
-        toast({
-          title: "Error",
-          description: "Could not load the course. Please try again.",
-          variant: "destructive",
-        });
-        navigate("/courses");
+        if (error.message === "No active session") {
+          toast({
+            title: "Sessão expirada",
+            description: "Sua sessão expirou. Por favor, faça login novamente.",
+            variant: "destructive",
+          });
+          navigate("/auth");
+        } else {
+          toast({
+            title: "Erro",
+            description: "Não foi possível carregar o curso. Por favor, tente novamente.",
+            variant: "destructive",
+          });
+          navigate("/courses");
+        }
       }
     }
   });
