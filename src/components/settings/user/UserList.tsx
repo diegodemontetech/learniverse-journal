@@ -4,25 +4,12 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import UserTableRow from "./UserTableRow";
 
 interface UserListProps {
   onEdit: (user: any) => void;
@@ -34,17 +21,6 @@ interface Profile {
   last_name: string | null;
   role: string | null;
   email?: string | null;
-  address: string | null;
-  avatar_url: string | null;
-  created_at: string;
-  department_id: string | null;
-  group_id: string | null;
-  level: number | null;
-  phone: string | null;
-  points: number | null;
-  position_id: string | null;
-  reports_to_user_id: string | null;
-  updated_at: string;
 }
 
 const UserList = ({ onEdit }: UserListProps) => {
@@ -77,30 +53,18 @@ const UserList = ({ onEdit }: UserListProps) => {
   const handleDelete = async (userId: string) => {
     try {
       setIsDeleting(true);
+      console.log("Attempting to delete user:", userId);
 
-      // Get the current session
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        throw new Error('No session found');
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId },
+      });
+
+      if (error) {
+        console.error("Error deleting user:", error);
+        throw error;
       }
 
-      // Call the edge function to delete the user
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ userId }),
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to delete user');
-      }
+      console.log("Delete response:", data);
 
       toast({
         title: "Success",
@@ -148,53 +112,13 @@ const UserList = ({ onEdit }: UserListProps) => {
       </TableHeader>
       <TableBody>
         {users.map((user: Profile) => (
-          <TableRow key={user.id}>
-            <TableCell>
-              {user.first_name} {user.last_name}
-            </TableCell>
-            <TableCell>{user.email}</TableCell>
-            <TableCell>{user.role}</TableCell>
-            <TableCell>
-              <AlertDialog>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onEdit(user)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={isDeleting}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                </div>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete the
-                      user and all associated data.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => handleDelete(user.id)}
-                      disabled={isDeleting}
-                    >
-                      {isDeleting ? "Deleting..." : "Delete"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </TableCell>
-          </TableRow>
+          <UserTableRow
+            key={user.id}
+            user={user}
+            onEdit={onEdit}
+            onDelete={handleDelete}
+            isDeleting={isDeleting}
+          />
         ))}
       </TableBody>
     </Table>
