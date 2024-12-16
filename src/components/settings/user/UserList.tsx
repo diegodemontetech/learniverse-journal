@@ -66,17 +66,17 @@ const UserList = ({ onEdit }: UserListProps) => {
 
       console.log("Delete response:", data);
 
+      await queryClient.invalidateQueries({ queryKey: ["users"] });
+
       toast({
         title: "Success",
         description: "User deleted successfully",
       });
-
-      queryClient.invalidateQueries({ queryKey: ["users"] });
     } catch (error: any) {
       console.error("Error deleting user:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to delete user",
         variant: "destructive",
       });
     } finally {
